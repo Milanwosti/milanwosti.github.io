@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Milan Wosti | IT Support Engineer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Grid -->
+    <div class="bg-grid"></div>
+
+    <!-- Floating IT Tools -->
+    <div class="floating-tools" id="floating-tools"></div>
+
+    <!-- Live Data Sidebar (Left) -->
+    <aside class="live-sidebar" id="live-sidebar">
+        <div class="sidebar-section" id="crypto-section">
+            <h4>Cryptocurrency</h4>
+            <div class="data-items" id="crypto-data"></div>
+        </div>
+        <div class="sidebar-section" id="stock-section">
+            <h4>Stock Market</h4>
+            <div class="data-items" id="stock-data"></div>
+        </div>
+        <div class="sidebar-section" id="news-section">
+            <h4>Latest News</h4>
+            <div class="data-items" id="news-data"></div>
+        </div>
+    </aside>
+
+    <!-- IT Facts Sidebar (Right) -->
+    <aside class="facts-sidebar" id="facts-sidebar">
+        <div class="sidebar-section" id="facts-section">
+            <h4>💡 IT Fact</h4>
+            <div class="fact-text" id="fact-text">Loading...</div>
+        </div>
+    </aside>
+
+    <!-- Profile & Quote (Top Left Corner) -->
+    <div class="profile-quote-container">
+        <img src="profile.jpg" alt="Milan Wosti" class="profile-pic">
+        <span class="brand" id="brand-quote">💡 Loading quote...</span>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <nav class="nav-links" id="nav-links">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#skills" class="nav-link">Skills</a>
+                <a href="#experience" class="nav-link">Experience</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <!-- Mobile-only buttons inside nav -->
+                <div class="mobile-actions">
+                    <button class="game-btn" id="sudoku-btn-mobile">Sudoku</button>
+                    <button class="music-btn" id="music-btn-mobile">♪ Music</button>
+                </div>
+            </nav>
+            <div class="header-actions">
+                <div class="site-search">
+                    <input type="text" id="site-search-input" placeholder="Search..." autocomplete="off">
+                    <div class="search-dropdown" id="search-dropdown"></div>
+                </div>
+                <button class="game-btn" id="sudoku-btn">Sudoku</button>
+                <button class="music-btn" id="music-btn">♪ Music</button>
+                <button class="music-control" id="music-control" style="display: none;">
+                    <span id="music-control-icon">⏸️</span>
+                </button>
+            </div>
+            <button class="menu-toggle" id="menu-toggle">
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Flags -->
+    <div class="flags-container" id="flags-container">
+        <div class="flag flag-us" title="United States">🇺🇸</div>
+        <div class="flag flag-nepal" title="Nepal">🇳🇵</div>
+    </div>
+
+    <!-- Status Widget (Top Right) -->
+    <div class="status-widget" id="status-widget">
+        <div class="status-row" id="greeting">🌙 Good Night</div>
+        <div class="status-row" id="datetime">Loading...</div>
+        <div class="status-row" id="weather">🌡️ Loading...</div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <p class="hero-subtitle">IT Support Engineer at Palo Alto Networks</p>
+            <h1 class="hero-title">Milan Wosti</h1>
+            <p class="hero-description">
+                Supporting enterprise IT infrastructure, cybersecurity operations, and data-driven solutions in Santa Clara County, California.
+            </p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn btn-primary">Get in Touch</a>
+                <a href="#about" class="btn btn-secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <h2 class="section-title">About Me</h2>
+            <div class="about-grid">
+                <div class="about-content">
+                    <h3>Background</h3>
+                    <p>
+                        I was born in <strong>Kathmandu, Nepal</strong>—a country renowned for hosting the highest mountain range in the world, the majestic <strong>Himalayas</strong>, including Mount Everest, the Earth's highest peak. Nepal is also historically significant as the <strong>birthplace of Gautam Buddha</strong>, the founder of Buddhism, making it a land of profound spiritual and cultural heritage.
+                    </p>
+                    <p>
+                        Growing up in such a rich environment instilled in me values of perseverance, humility, and a deep appreciation for both natural beauty and human achievement. These principles continue to guide my professional journey in the technology sector.
+                    </p>
+                    
+                    <h3>Professional Profile</h3>
+                    <p>
+                        I am an IT Support Engineer at Palo Alto Networks with 1.5 years of experience supporting enterprise IT operations. I hold a Bachelor's degree in Information Technology from KIST College.
+                    </p>
+                    <p>
+                        My work involves managing identity and access systems, device management, data analysis, and contributing to cybersecurity initiatives at one of the world's leading security companies.
+                    </p>
+                    
+                    <div class="about-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Location</span>
+                            <span class="detail-value">Santa Clara County, California</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Education</span>
+                            <span class="detail-value">B.IT, KIST College</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin</span>
+                            <span class="detail-value">Kathmandu, Nepal</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card">
+                        <span class="stat-value">1.5</span>
+                        <span class="stat-label">Years at PANW</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">IT</span>
+                        <span class="stat-label">Support Engineer</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">B.IT</span>
+                        <span class="stat-label">Degree</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="section section-alt" id="skills">
+        <div class="container">
+            <h2 class="section-title">Skills & Expertise</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <h3>IT Support</h3>
+                    <p>Enterprise IT operations, troubleshooting, and technical support for end users and systems.</p>
+                </div>
+                <div class="skill-card">
+                    <h3>Data Analysis</h3>
+                    <p>Data cleaning, statistical analysis, report generation, and data-driven insights.</p>
+                </div>
+                <div class="skill-card">
+                    <h3>Cybersecurity</h3>
+                    <p>Working alongside security teams at Palo Alto Networks, understanding security protocols.</p>
+                </div>
+                <div class="skill-card">
+                    <h3>Project Management</h3>
+                    <p>Coordination, documentation, project support, and timeline management.</p>
+                </div>
+                <div class="skill-card">
+                    <h3>SQL & Databases</h3>
+                    <p>SQL queries, data warehousing, and database management fundamentals.</p>
+                </div>
+                <div class="skill-card">
+                    <h3>Microsoft Excel</h3>
+                    <p>Advanced Excel skills for data analysis, reporting, and business intelligence.</p>
+                </div>
+            </div>
+            
+            <h3 class="subsection-title">Tools & Technologies</h3>
+            <div class="tools-grid">
+                <span class="tool-tag">Active Directory</span>
+                <span class="tool-tag">Jamf Pro</span>
+                <span class="tool-tag">Okta</span>
+                <span class="tool-tag">Microsoft 365</span>
+                <span class="tool-tag">Google Workspace</span>
+                <span class="tool-tag">Slack</span>
+                <span class="tool-tag">ServiceNow</span>
+                <span class="tool-tag">Jira</span>
+                <span class="tool-tag">Confluence</span>
+                <span class="tool-tag">CrowdStrike</span>
+                <span class="tool-tag">Palo Alto Cortex</span>
+                <span class="tool-tag">AWS</span>
+                <span class="tool-tag">Azure AD</span>
+                <span class="tool-tag">Docker</span>
+                <span class="tool-tag">SQL</span>
+                <span class="tool-tag">Python</span>
+                <span class="tool-tag">PowerShell</span>
+                <span class="tool-tag">Windows Server</span>
+                <span class="tool-tag">Linux</span>
+                <span class="tool-tag">Intune</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section class="section" id="experience">
+        <div class="container">
+            <h2 class="section-title">Experience</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker active"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>IT Support Engineer</h3>
+                                <p class="company">Palo Alto Networks</p>
+                            </div>
+                            <span class="timeline-date">1.5 Years</span>
+                        </div>
+                        <p class="timeline-desc">
+                            Supporting enterprise IT infrastructure and operations at a leading cybersecurity company. Working with the IT team on technical support, data analysis, project coordination, and documentation. Managing tools like Active Directory, Okta, Jamf, and various SaaS applications.
+                        </p>
+                        <div class="timeline-tags">
+                            <span>IT Support</span>
+                            <span>Active Directory</span>
+                            <span>Okta</span>
+                            <span>Jamf</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Bachelor's in Information Technology</h3>
+                                <p class="company">KIST College</p>
+                            </div>
+                            <span class="timeline-date">Completed</span>
+                        </div>
+                        <p class="timeline-desc">
+                            Completed Bachelor's degree in Information Technology, building a strong foundation in computer systems, networking, database management, and IT infrastructure.
+                        </p>
+                        <div class="timeline-tags">
+                            <span>IT Degree</span>
+                            <span>Networking</span>
+                            <span>Database</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section section-alt" id="contact">
+        <div class="container">
+            <h2 class="section-title">Get in Touch</h2>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div class="contact-card">
+                        <img src="profile.jpg" alt="Milan Wosti" class="contact-photo">
+                        <h3>Milan Wosti</h3>
+                        <p>IT Support Engineer</p>
+                    </div>
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <span class="contact-label">Email</span>
+                            <span class="contact-value">wmilan291@gmail.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">Location</span>
+                            <span class="contact-value">Santa Clara County, California</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-label">Company</span>
+                            <span class="contact-value">Palo Alto Networks</span>
+                        </div>
+                    </div>
+                    <div class="contact-buttons">
+                        <a href="https://linkedin.com/in/milanwosticonnect" target="_blank" class="btn btn-linkedin">
+                            Connect on LinkedIn
+                        </a>
+                        <button class="btn btn-schedule" id="schedule-btn">
+                            📅 Schedule a Meeting
+                        </button>
+                        <a href="mailto:wmilan291@gmail.com" class="btn btn-email">
+                            ✉️ Send Email
+                        </a>
+                    </div>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-brand">Milan Wosti</p>
+            <p class="footer-text">IT Support Engineer at Palo Alto Networks</p>
+            <p class="footer-copy">© 2026 Milan Wosti. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Music Player Modal -->
+    <div class="modal" id="music-modal">
+        <div class="modal-content music-modal">
+            <div class="modal-header">
+                <h3>Music Player</h3>
+                <button class="modal-close" id="music-close">×</button>
+            </div>
+            <div class="music-search">
+                <input type="text" id="music-search-input" placeholder="Search any song...">
+                <button id="music-search-btn">Search</button>
+            </div>
+            <div class="music-tracks" id="music-tracks">
+                <div class="track-item" data-video="mk48xRzuNvA">
+                    <span class="track-name">Hall of Fame - The Script</span>
+                    <button class="play-btn">▶</button>
+                </div>
+                <div class="track-item" data-video="RgKAFK5djSk">
+                    <span class="track-name">See You Again - Wiz Khalifa</span>
+                    <button class="play-btn">▶</button>
+                </div>
+                <div class="track-item" data-video="kPa7bsKwL-c">
+                    <span class="track-name">Die With A Smile - Bruno Mars</span>
+                    <button class="play-btn">▶</button>
+                </div>
+            </div>
+            <div class="search-results" id="search-results"></div>
+            <div class="youtube-player" id="youtube-player">
+                <p class="player-placeholder">Select a track or search for any song</p>
+            </div>
+            <div class="now-playing" id="now-playing" style="display: none;">
+                <span class="now-playing-text">🎵 Now Playing</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Persistent Audio Player (hidden iframe) -->
+    <div id="persistent-player" style="position: fixed; bottom: -1000px; left: -1000px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- Schedule Meeting Modal -->
+    <div class="modal" id="schedule-modal">
+        <div class="modal-content schedule-modal">
+            <div class="modal-header">
+                <h3>📅 Schedule a Meeting with Milan</h3>
+                <button class="modal-close" id="schedule-close">×</button>
+            </div>
+            <form class="schedule-form" id="schedule-form">
+                <div class="form-group">
+                    <label for="visitor-name">Your Name *</label>
+                    <input type="text" id="visitor-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="visitor-email">Your Email *</label>
+                    <input type="email" id="visitor-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-date">Preferred Date *</label>
+                    <input type="date" id="meeting-date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-time">Preferred Time *</label>
+                    <select id="meeting-time" name="time" required>
+                        <option value="">Select a time</option>
+                        <option value="09:00 AM">09:00 AM</option>
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="12:00 PM">12:00 PM</option>
+                        <option value="01:00 PM">01:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                        <option value="05:00 PM">05:00 PM</option>
+                        <option value="06:00 PM">06:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-topic">Meeting Topic *</label>
+                    <input type="text" id="meeting-topic" name="topic" placeholder="e.g., Job Opportunity, Collaboration, etc." required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-notes">Additional Notes</label>
+                    <textarea id="meeting-notes" name="notes" rows="3" placeholder="Any additional information..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Send Meeting Request</button>
+                <p class="schedule-note">Meeting request will be sent to Milan's email. He will confirm the meeting via email.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chatbox -->
+    <div class="chatbox" id="chatbox">
+        <button class="chatbox-toggle" id="chatbox-toggle">
+            <span class="chat-icon">💬</span>
+            <span class="chat-text">Ask Milan</span>
+        </button>
+        <div class="chatbox-window" id="chatbox-window">
+            <div class="chatbox-header">
+                <div class="chatbox-title">
+                    <img src="profile.jpg" alt="Milan" class="chat-avatar">
+                    <div>
+                        <h4>Ask Milan</h4>
+                        <span class="chat-status">Online</span>
+                    </div>
+                </div>
+                <button class="chatbox-close" id="chatbox-close">×</button>
+            </div>
+            <div class="chatbox-messages" id="chatbox-messages">
+                <div class="chat-message bot">
+                    <p>Hi! I'm Milan's virtual assistant. Ask me anything about Milan's experience, skills, or background!</p>
+                </div>
+            </div>
+            <div class="chatbox-input">
+                <input type="text" id="chat-input" placeholder="Type your question..." autocomplete="off">
+                <button id="chat-send">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sudoku Modal -->
+    <div class="modal" id="sudoku-modal">
+        <div class="modal-content sudoku-modal">
+            <div class="modal-header">
+                <h3>Sudoku</h3>
+                <button class="modal-close" id="sudoku-close">×</button>
+            </div>
+            
+            <!-- Player Name Entry -->
+            <div class="sudoku-name-entry" id="sudoku-name-entry">
+                <h4>Enter Your Name to Play</h4>
+                <input type="text" id="player-name" placeholder="Your name..." maxlength="20">
+                <button class="btn btn-primary" id="start-game-btn">Start Game</button>
+                
+                <div class="leaderboard" id="leaderboard">
+                    <h4>🏆 Top 3 Fastest Times</h4>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-empty">No records yet. Be the first!</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Area (hidden until name entered) -->
+            <div class="sudoku-game" id="sudoku-game" style="display: none;">
+                <div class="sudoku-levels" id="sudoku-levels">
+                    <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
+                    <button class="level-btn" data-level="normal">⚡ Normal</button>
+                    <button class="level-btn" data-level="pro">🔥 Pro</button>
+                </div>
+                <div class="sudoku-info">
+                    <span>⏱️ <strong id="sudoku-timer">00:00</strong></span>
+                    <span class="info-divider">|</span>
+                    <span>Errors: <strong id="sudoku-errors">0</strong> / 10</span>
+                    <span class="info-divider">|</span>
+                    <span>Player: <strong id="current-player">Guest</strong></span>
+                </div>
+                <div class="sudoku-grid" id="sudoku-grid"></div>
+                <div class="sudoku-controls">
+                    <div class="number-pad" id="number-pad">
+                        <button data-num="1">1</button>
+                        <button data-num="2">2</button>
+                        <button data-num="3">3</button>
+                        <button data-num="4">4</button>
+                        <button data-num="5">5</button>
+                        <button data-num="6">6</button>
+                        <button data-num="7">7</button>
+                        <button data-num="8">8</button>
+                        <button data-num="9">9</button>
+                        <button data-num="0" class="erase">⌫</button>
+                    </div>
+                    <button class="btn btn-primary" id="new-game">New Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
