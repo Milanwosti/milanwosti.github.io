@@ -260,22 +260,30 @@ body {
     font-size: 0.875rem;
     color: var(--gray-400);
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color 0.2s, transform 0.2s, text-shadow 0.2s;
     position: relative;
+    display: inline-block;
+    padding: 0.25rem 0;
 }
 
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: -4px;
+    bottom: 0;
     left: 0;
     width: 0;
-    height: 1px;
-    background: var(--white);
-    transition: width 0.2s;
+    height: 2px;
+    background: linear-gradient(90deg, var(--white), var(--gray-400));
+    transition: width 0.3s ease;
+    border-radius: 1px;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+    color: var(--white);
+    transform: scale(1.1);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
 .nav-link.active {
     color: var(--white);
 }
