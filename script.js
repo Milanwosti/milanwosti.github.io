@@ -2,6 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initStatusBar();
+    initQuoteOfDay();
     initNavigation();
     initFloatingTools();
     initLiveData();
@@ -20,28 +21,37 @@ function initStatusBar() {
 
     function updateGreeting() {
         const hour = new Date().getHours();
-        if (hour >= 5 && hour < 12) greeting.textContent = 'Good Morning';
-        else if (hour >= 12 && hour < 17) greeting.textContent = 'Good Afternoon';
-        else if (hour >= 17 && hour < 21) greeting.textContent = 'Good Evening';
-        else greeting.textContent = 'Good Night';
+        if (hour >= 5 && hour < 12) greeting.textContent = '🌅 Good Morning';
+        else if (hour >= 12 && hour < 17) greeting.textContent = '☀️ Good Afternoon';
+        else if (hour >= 17 && hour < 21) greeting.textContent = '🌆 Good Evening';
+        else greeting.textContent = '🌙 Good Night';
     }
 
     function updateDateTime() {
         const now = new Date();
         const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        datetime.textContent = `${date} • ${time}`;
+        datetime.textContent = `📅 ${date} • ⏰ ${time}`;
     }
 
     async function updateWeather() {
         try {
-            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.35&longitude=-121.95&current=temperature_2m&temperature_unit=fahrenheit');
+            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.35&longitude=-121.95&current=temperature_2m,weather_code&temperature_unit=fahrenheit');
             const data = await response.json();
             if (data.current) {
-                weather.textContent = `${Math.round(data.current.temperature_2m)}°F Santa Clara`;
+                const temp = Math.round(data.current.temperature_2m);
+                const code = data.current.weather_code;
+                let emoji = '🌡️';
+                if (code === 0) emoji = '☀️';
+                else if (code <= 3) emoji = '⛅';
+                else if (code <= 49) emoji = '🌫️';
+                else if (code <= 69) emoji = '🌧️';
+                else if (code <= 79) emoji = '❄️';
+                else if (code <= 99) emoji = '⛈️';
+                weather.textContent = `${emoji} ${temp}°F Santa Clara`;
             }
         } catch {
-            weather.textContent = 'Santa Clara, CA';
+            weather.textContent = '📍 Santa Clara, CA';
         }
     }
 
@@ -50,6 +60,50 @@ function initStatusBar() {
     updateWeather();
     setInterval(updateDateTime, 1000);
     setInterval(updateGreeting, 60000);
+}
+
+// Quote of the Day
+function initQuoteOfDay() {
+    const quoteText = document.getElementById('quote-text');
+    
+    const quotes = [
+        "The only way to do great work is to love what you do. — Steve Jobs",
+        "Innovation distinguishes between a leader and a follower. — Steve Jobs",
+        "Stay hungry, stay foolish. — Steve Jobs",
+        "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt",
+        "Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill",
+        "The best time to plant a tree was 20 years ago. The second best time is now. — Chinese Proverb",
+        "Your time is limited, don't waste it living someone else's life. — Steve Jobs",
+        "The only limit to our realization of tomorrow is our doubts of today. — Franklin D. Roosevelt",
+        "In the middle of difficulty lies opportunity. — Albert Einstein",
+        "It does not matter how slowly you go as long as you do not stop. — Confucius",
+        "Believe you can and you're halfway there. — Theodore Roosevelt",
+        "The journey of a thousand miles begins with one step. — Lao Tzu",
+        "What you get by achieving your goals is not as important as what you become. — Zig Ziglar",
+        "The secret of getting ahead is getting started. — Mark Twain",
+        "Don't watch the clock; do what it does. Keep going. — Sam Levenson",
+        "Everything you've ever wanted is on the other side of fear. — George Addair",
+        "Success usually comes to those who are too busy to be looking for it. — Henry David Thoreau",
+        "The harder you work for something, the greater you'll feel when you achieve it. — Unknown",
+        "Dream big and dare to fail. — Norman Vaughan",
+        "It always seems impossible until it's done. — Nelson Mandela",
+        "The only person you are destined to become is the person you decide to be. — Ralph Waldo Emerson",
+        "Go confidently in the direction of your dreams. — Henry David Thoreau",
+        "Quality is not an act, it is a habit. — Aristotle",
+        "The mind is everything. What you think you become. — Buddha",
+        "Strive not to be a success, but rather to be of value. — Albert Einstein",
+        "The best revenge is massive success. — Frank Sinatra",
+        "I have not failed. I've just found 10,000 ways that won't work. — Thomas Edison",
+        "A person who never made a mistake never tried anything new. — Albert Einstein",
+        "The greatest glory in living lies not in never falling, but in rising every time we fall. — Nelson Mandela",
+        "Life is what happens when you're busy making other plans. — John Lennon",
+        "The way to get started is to quit talking and begin doing. — Walt Disney"
+    ];
+    
+    // Get quote based on day of year (changes daily)
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const quoteIndex = dayOfYear % quotes.length;
+    quoteText.textContent = `"${quotes[quoteIndex]}"`;
 }
 
 // Navigation
@@ -96,16 +150,18 @@ function initNavigation() {
     });
 }
 
-// Floating Tools with Drag & Drop
+// Floating Tools with Cursor Interaction
 function initFloatingTools() {
     const container = document.getElementById('floating-tools');
     
-    // IT tool icons (using emoji/unicode symbols)
+    // IT tool icons
     const tools = [
         '🖥️', '💻', '🔐', '🔑', '☁️', '🛡️', '⚙️', '🔧', 
         '📊', '🗄️', '🌐', '📡', '🔌', '💾', '📁', '🖨️',
         '🔒', '📱', '🖱️', '⌨️', '🔋', '📶', '💿', '🧮'
     ];
+
+    const elements = [];
 
     tools.forEach((icon, i) => {
         const el = document.createElement('div');
@@ -114,59 +170,51 @@ function initFloatingTools() {
         el.style.left = Math.random() * 85 + 5 + '%';
         el.style.top = Math.random() * 85 + 5 + '%';
         
+        // Store original position
+        el.dataset.baseX = parseFloat(el.style.left);
+        el.dataset.baseY = parseFloat(el.style.top);
+        
         // Animation
         const duration = 40 + Math.random() * 40;
         const delay = Math.random() * 15;
         el.style.animation = `floatMove${i % 4} ${duration}s ${delay}s infinite ease-in-out`;
         
-        // Hover pause
-        el.addEventListener('mouseenter', () => {
-            el.classList.add('paused');
-        });
-        
-        el.addEventListener('mouseleave', () => {
-            if (!el.classList.contains('dragging')) {
-                el.classList.remove('paused');
-            }
-        });
-        
-        // Drag functionality
-        let isDragging = false;
-        let startX, startY, initialX, initialY;
-        
-        el.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            el.classList.add('dragging', 'paused');
-            startX = e.clientX;
-            startY = e.clientY;
-            initialX = el.offsetLeft;
-            initialY = el.offsetTop;
-            el.style.animation = 'none';
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            el.style.left = initialX + dx + 'px';
-            el.style.top = initialY + dy + 'px';
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                el.classList.remove('dragging');
-                setTimeout(() => {
-                    el.classList.remove('paused');
-                    el.style.animation = `floatMove${i % 4} ${duration}s infinite ease-in-out`;
-                }, 2000);
-            }
-        });
-        
         container.appendChild(el);
+        elements.push(el);
     });
 
-    // Add varied animation keyframes
+    // Mouse interaction - icons move away from cursor
+    document.addEventListener('mousemove', (e) => {
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        
+        elements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const elX = rect.left + rect.width / 2;
+            const elY = rect.top + rect.height / 2;
+            
+            const distX = mouseX - elX;
+            const distY = mouseY - elY;
+            const distance = Math.sqrt(distX * distX + distY * distY);
+            
+            // If cursor is within 150px, push the icon away
+            if (distance < 150) {
+                const force = (150 - distance) / 150;
+                const moveX = -distX * force * 0.5;
+                const moveY = -distY * force * 0.5;
+                
+                el.style.transform = `translate(${moveX}px, ${moveY}px) scale(${1 + force * 0.3})`;
+                el.style.opacity = 0.3 + force * 0.7;
+                el.style.filter = 'grayscale(0%)';
+            } else {
+                el.style.transform = '';
+                el.style.opacity = '';
+                el.style.filter = '';
+            }
+        });
+    });
+
+    // Add animation keyframes
     const style = document.createElement('style');
     style.textContent = `
         @keyframes floatMove0 {
@@ -420,7 +468,7 @@ function initMusicPlayer() {
     });
 }
 
-// Sudoku Game - 10 mistakes allowed
+// Sudoku Game with Difficulty Levels
 function initSudoku() {
     const btn = document.getElementById('sudoku-btn');
     const modal = document.getElementById('sudoku-modal');
@@ -429,39 +477,95 @@ function initSudoku() {
     const errorsEl = document.getElementById('sudoku-errors');
     const numberPad = document.getElementById('number-pad');
     const newGameBtn = document.getElementById('new-game');
+    const levelBtns = document.querySelectorAll('.level-btn');
 
     let board = [];
     let solution = [];
+    let currentPuzzle = [];
     let selectedCell = null;
     let errors = 0;
+    let currentLevel = 'beginner';
     const maxErrors = 10;
 
-    const puzzle = {
-        puzzle: [
-            5,3,0,0,7,0,0,0,0,
-            6,0,0,1,9,5,0,0,0,
-            0,9,8,0,0,0,0,6,0,
-            8,0,0,0,6,0,0,0,3,
-            4,0,0,8,0,3,0,0,1,
-            7,0,0,0,2,0,0,0,6,
-            0,6,0,0,0,0,2,8,0,
-            0,0,0,4,1,9,0,0,5,
-            0,0,0,0,8,0,0,7,9
-        ],
-        solution: [
-            5,3,4,6,7,8,9,1,2,
-            6,7,2,1,9,5,3,4,8,
-            1,9,8,3,4,2,5,6,7,
-            8,5,9,7,6,1,4,2,3,
-            4,2,6,8,5,3,7,9,1,
-            7,1,3,9,2,4,8,5,6,
-            9,6,1,5,3,7,2,8,4,
-            2,8,7,4,1,9,6,3,5,
-            3,4,5,2,8,6,1,7,9
-        ]
+    // Puzzles for different difficulty levels
+    const puzzles = {
+        beginner: {
+            puzzle: [
+                5,3,4,0,7,0,0,0,0,
+                6,0,0,1,9,5,0,0,0,
+                0,9,8,0,0,0,0,6,0,
+                8,0,0,0,6,0,0,0,3,
+                4,0,0,8,0,3,0,0,1,
+                7,0,0,0,2,0,0,0,6,
+                0,6,0,0,0,0,2,8,0,
+                0,0,0,4,1,9,0,0,5,
+                0,0,0,0,8,0,0,7,9
+            ],
+            solution: [
+                5,3,4,6,7,8,9,1,2,
+                6,7,2,1,9,5,3,4,8,
+                1,9,8,3,4,2,5,6,7,
+                8,5,9,7,6,1,4,2,3,
+                4,2,6,8,5,3,7,9,1,
+                7,1,3,9,2,4,8,5,6,
+                9,6,1,5,3,7,2,8,4,
+                2,8,7,4,1,9,6,3,5,
+                3,4,5,2,8,6,1,7,9
+            ]
+        },
+        normal: {
+            puzzle: [
+                0,0,0,0,7,0,0,0,0,
+                6,0,0,1,9,5,0,0,0,
+                0,9,0,0,0,0,0,6,0,
+                8,0,0,0,6,0,0,0,3,
+                4,0,0,8,0,3,0,0,1,
+                0,0,0,0,2,0,0,0,0,
+                0,6,0,0,0,0,2,8,0,
+                0,0,0,4,1,9,0,0,5,
+                0,0,0,0,8,0,0,0,0
+            ],
+            solution: [
+                5,3,4,6,7,8,9,1,2,
+                6,7,2,1,9,5,3,4,8,
+                1,9,8,3,4,2,5,6,7,
+                8,5,9,7,6,1,4,2,3,
+                4,2,6,8,5,3,7,9,1,
+                7,1,3,9,2,4,8,5,6,
+                9,6,1,5,3,7,2,8,4,
+                2,8,7,4,1,9,6,3,5,
+                3,4,5,2,8,6,1,7,9
+            ]
+        },
+        pro: {
+            puzzle: [
+                0,0,0,0,0,0,0,0,0,
+                0,0,0,1,9,5,0,0,0,
+                0,9,0,0,0,0,0,6,0,
+                8,0,0,0,0,0,0,0,3,
+                0,0,0,8,0,3,0,0,0,
+                0,0,0,0,0,0,0,0,6,
+                0,6,0,0,0,0,0,8,0,
+                0,0,0,4,1,9,0,0,0,
+                0,0,0,0,0,0,0,0,0
+            ],
+            solution: [
+                5,3,4,6,7,8,9,1,2,
+                6,7,2,1,9,5,3,4,8,
+                1,9,8,3,4,2,5,6,7,
+                8,5,9,7,6,1,4,2,3,
+                4,2,6,8,5,3,7,9,1,
+                7,1,3,9,2,4,8,5,6,
+                9,6,1,5,3,7,2,8,4,
+                2,8,7,4,1,9,6,3,5,
+                3,4,5,2,8,6,1,7,9
+            ]
+        }
     };
 
     function initBoard() {
+        const puzzle = puzzles[currentLevel];
+        currentPuzzle = [...puzzle.puzzle];
         board = [...puzzle.puzzle];
         solution = [...puzzle.solution];
         errors = 0;
@@ -477,7 +581,7 @@ function initSudoku() {
             cell.className = 'sudoku-cell';
             cell.dataset.index = i;
             
-            if (puzzle.puzzle[i] !== 0) {
+            if (currentPuzzle[i] !== 0) {
                 cell.classList.add('given');
                 cell.textContent = num;
             } else if (num !== 0) {
@@ -493,7 +597,7 @@ function initSudoku() {
     }
 
     function selectCell(index) {
-        if (puzzle.puzzle[index] !== 0) return;
+        if (currentPuzzle[index] !== 0) return;
         
         document.querySelectorAll('.sudoku-cell').forEach(c => c.classList.remove('selected'));
         const cell = grid.children[index];
@@ -502,7 +606,7 @@ function initSudoku() {
     }
 
     function enterNumber(num) {
-        if (selectedCell === null || puzzle.puzzle[selectedCell] !== 0) return;
+        if (selectedCell === null || currentPuzzle[selectedCell] !== 0) return;
         
         if (num === 0) {
             board[selectedCell] = 0;
@@ -515,7 +619,7 @@ function initSudoku() {
                 
                 if (errors >= maxErrors) {
                     setTimeout(() => {
-                        alert('Game Over! You made ' + maxErrors + ' mistakes.');
+                        alert('Game Over! You made ' + maxErrors + ' mistakes. Try again!');
                         initBoard();
                     }, 300);
                     return;
@@ -525,7 +629,7 @@ function initSudoku() {
             // Check win
             if (board.every((val, i) => val === solution[i])) {
                 setTimeout(() => {
-                    alert('Congratulations! You solved the puzzle!');
+                    alert('🎉 Congratulations! You solved the ' + currentLevel + ' puzzle!');
                 }, 300);
             }
         }
@@ -535,6 +639,16 @@ function initSudoku() {
             grid.children[selectedCell].classList.add('selected');
         }
     }
+
+    // Level selection
+    levelBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            levelBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLevel = btn.dataset.level;
+            initBoard();
+        });
+    });
 
     btn.addEventListener('click', () => {
         modal.classList.add('active');

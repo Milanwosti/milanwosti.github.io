@@ -287,6 +287,38 @@ body {
     color: var(--gray-700);
 }
 
+/* Quote Banner */
+.quote-banner {
+    position: fixed;
+    top: 95px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background: rgba(20, 20, 20, 0.9);
+    border: 1px solid var(--gray-800);
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    max-width: 90%;
+}
+
+.quote-icon {
+    font-size: 0.875rem;
+}
+
+.quote-text {
+    font-size: 0.7rem;
+    color: var(--gray-400);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 500px;
+}
+
 /* Container */
 .container {
     max-width: 1000px;
@@ -384,6 +416,33 @@ body {
 
 .btn-linkedin:hover {
     background: var(--gray-700);
+}
+
+.btn-schedule {
+    background: var(--white);
+    color: var(--black);
+    width: 100%;
+}
+
+.btn-schedule:hover {
+    background: var(--gray-200);
+}
+
+.btn-email {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--gray-700);
+    width: 100%;
+}
+
+.btn-email:hover {
+    background: var(--gray-800);
+}
+
+.contact-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .btn-full {
@@ -986,6 +1045,38 @@ body {
 /* Sudoku Modal */
 .sudoku-modal {
     max-width: 400px;
+}
+
+.sudoku-levels {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.level-btn {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--gray-900);
+    border: 1px solid var(--gray-800);
+    border-radius: 6px;
+    color: var(--gray-400);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.level-btn:hover {
+    border-color: var(--gray-600);
+    color: var(--white);
+}
+
+.level-btn.active {
+    background: var(--white);
+    color: var(--black);
+    border-color: var(--white);
 }
 
 .sudoku-info {

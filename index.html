@@ -56,11 +56,17 @@
 
     <!-- Status Bar -->
     <div class="status-bar" id="status-bar">
-        <span id="greeting">Good Evening</span>
+        <span id="greeting">☀️ Good Evening</span>
         <span class="divider">•</span>
         <span id="datetime">Loading...</span>
         <span class="divider">•</span>
-        <span id="weather">Loading...</span>
+        <span id="weather">🌡️ Loading...</span>
+    </div>
+
+    <!-- Quote of the Day -->
+    <div class="quote-banner" id="quote-banner">
+        <span class="quote-icon">💡</span>
+        <span class="quote-text" id="quote-text">Loading quote...</span>
     </div>
 
     <!-- Hero Section -->
@@ -253,6 +259,10 @@
                     </div>
                     <div class="contact-details">
                         <div class="contact-item">
+                            <span class="contact-label">Email</span>
+                            <span class="contact-value">wmilan291@gmail.com</span>
+                        </div>
+                        <div class="contact-item">
                             <span class="contact-label">Location</span>
                             <span class="contact-value">Santa Clara County, California</span>
                         </div>
@@ -261,9 +271,17 @@
                             <span class="contact-value">Palo Alto Networks</span>
                         </div>
                     </div>
-                    <a href="https://linkedin.com/in/milanwosticonnect" target="_blank" class="btn btn-linkedin">
-                        Connect on LinkedIn
-                    </a>
+                    <div class="contact-buttons">
+                        <a href="https://linkedin.com/in/milanwosticonnect" target="_blank" class="btn btn-linkedin">
+                            Connect on LinkedIn
+                        </a>
+                        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0?gv=true" target="_blank" class="btn btn-schedule" id="schedule-btn">
+                            📅 Schedule a Meeting
+                        </a>
+                        <a href="mailto:wmilan291@gmail.com" class="btn btn-email">
+                            ✉️ Send Email
+                        </a>
+                    </div>
                 </div>
                 <form class="contact-form" id="contact-form">
                     <div class="form-group">
@@ -360,6 +378,11 @@
             <div class="modal-header">
                 <h3>Sudoku</h3>
                 <button class="modal-close" id="sudoku-close">×</button>
+            </div>
+            <div class="sudoku-levels" id="sudoku-levels">
+                <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
+                <button class="level-btn" data-level="normal">⚡ Normal</button>
+                <button class="level-btn" data-level="pro">🔥 Pro</button>
             </div>
             <div class="sudoku-info">
                 <span>Errors: <strong id="sudoku-errors">0</strong> / 10</span>
