@@ -498,19 +498,17 @@ function initChatbox() {
     let conversationHistory = [];
 
     // Milan's context for the AI
-    const milanContext = `You are "Ask Milan", an AI assistant on Milan Wosti's portfolio website. You can answer ANY question on ANY topic - just like ChatGPT or Gemini. Be helpful, friendly, and knowledgeable.
+    const systemPrompt = `You are "Ask Milan", a helpful AI assistant on Milan Wosti's portfolio website. Answer ANY question the user asks - you are a general-purpose AI like ChatGPT.
 
-About Milan Wosti (the website owner):
-- Name: Milan Wosti
-- Role: IT Support Engineer at Palo Alto Networks (1.5 years)
+About Milan Wosti (website owner) - use this info ONLY if asked about Milan:
+- IT Support Engineer at Palo Alto Networks (1.5 years experience)
 - Location: Santa Clara County, California
-- Origin: Born in Kathmandu, Nepal (home to Himalayas, Mount Everest, birthplace of Gautam Buddha)
-- Education: Bachelor's in Information Technology from KIST College
-- Skills: IT Support, Data Analysis, Cybersecurity, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, SQL
-- Contact: linkedin.com/in/milanwosticonnect
-- Interests: Robots and AI technology
+- From: Kathmandu, Nepal (home to Himalayas, Mount Everest, birthplace of Buddha)
+- Education: B.IT from KIST College
+- Skills: Active Directory, Okta, Jamf, AWS, Azure, Python, PowerShell, SQL
+- LinkedIn: linkedin.com/in/milanwosticonnect
 
-If asked about Milan, use this info. For all other questions, answer helpfully like a general AI assistant. Keep responses concise but informative (2-4 sentences typically). Be conversational and friendly.`;
+For ALL other questions, answer accurately and helpfully. Keep responses concise (2-4 sentences). Be friendly and conversational.`;
 
     function addMessage(text, isUser = false, isTyping = false) {
         const msg = document.createElement('div');
@@ -532,176 +530,196 @@ If asked about Milan, use this info. For all other questions, answer helpfully l
     }
 
     async function getAIResponse(userMessage) {
-        // Add user message to history
         conversationHistory.push({ role: 'user', content: userMessage });
         
-        // Keep only last 10 messages for context
-        if (conversationHistory.length > 10) {
-            conversationHistory = conversationHistory.slice(-10);
+        if (conversationHistory.length > 20) {
+            conversationHistory = conversationHistory.slice(-20);
         }
 
+        // Try multiple AI APIs in order
+        let response = await tryGoogleGemini(userMessage);
+        if (!response) response = await tryOpenRouter(userMessage);
+        if (!response) response = await tryFreeGPT(userMessage);
+        if (!response) response = getSmartFallback(userMessage);
+        
+        conversationHistory.push({ role: 'assistant', content: response });
+        return response;
+    }
+
+    // Google Gemini API (free tier)
+    async function tryGoogleGemini(userMessage) {
         try {
-            // Using free AI API (DuckDuckGo AI)
-            const response = await fetch('https://api.duckduckgo.com/duckchat/v1/chat', {
+            const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyAJkBNTuitFqLMzd7gKsz-n6cLOyxfBrZE', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: `${systemPrompt}\n\nUser: ${userMessage}\n\nAssistant:` }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 500
+                    }
+                })
+            });
+            
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+        } catch {
+            return null;
+        }
+    }
+
+    // OpenRouter free models
+    async function tryOpenRouter(userMessage) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-vqd-4': await getVQD()
+                    'HTTP-Referer': window.location.href,
+                    'X-Title': 'Ask Milan Portfolio'
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
+                    model: 'mistralai/mistral-7b-instruct:free',
                     messages: [
-                        { role: 'system', content: milanContext },
+                        { role: 'system', content: systemPrompt },
                         ...conversationHistory
-                    ]
+                    ],
+                    max_tokens: 500
                 })
             });
-
-            if (!response.ok) throw new Error('API error');
             
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let fullResponse = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-                
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-                        if (data === '[DONE]') continue;
-                        try {
-                            const json = JSON.parse(data);
-                            if (json.message) {
-                                fullResponse += json.message;
-                            }
-                        } catch {}
-                    }
-                }
-            }
-
-            if (fullResponse) {
-                conversationHistory.push({ role: 'assistant', content: fullResponse });
-                return fullResponse;
-            }
-            throw new Error('No response');
-
-        } catch (error) {
-            // Fallback to Hugging Face free inference
-            return await getFallbackResponse(userMessage);
-        }
-    }
-
-    async function getVQD() {
-        try {
-            const response = await fetch('https://duckduckgo.com/duckchat/v1/status', {
-                headers: { 'x-vqd-accept': '1' }
-            });
-            return response.headers.get('x-vqd-4') || '';
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data?.choices?.[0]?.message?.content || null;
         } catch {
-            return '';
+            return null;
         }
     }
 
-    async function getFallbackResponse(userMessage) {
-        // Smart fallback with local AI-like responses
+    // Free GPT API
+    async function tryFreeGPT(userMessage) {
+        try {
+            const response = await fetch('https://api.pawan.krd/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer pk-this-is-a-real-free-pool-token-for-everyone'
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        ...conversationHistory
+                    ],
+                    max_tokens: 500
+                })
+            });
+            
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data?.choices?.[0]?.message?.content || null;
+        } catch {
+            return null;
+        }
+    }
+
+    // Smart fallback with real knowledge
+    function getSmartFallback(userMessage) {
         const q = userMessage.toLowerCase();
         
-        // Check if asking about Milan
-        if (q.includes('milan') || q.includes('you') || q.includes('owner') || q.includes('portfolio') || 
-            q.includes('website') || q.includes('who made') || q.includes('creator')) {
-            return getMilanResponse(q);
+        // Mount Everest
+        if (q.includes('everest') || (q.includes('tallest') && q.includes('mountain')) || (q.includes('highest') && q.includes('mountain'))) {
+            return "Mount Everest is 8,848.86 meters (29,031.7 feet) tall, making it Earth's highest mountain above sea level. It's located in the Himalayas on the border between Nepal and Tibet. Fun fact: Milan Wosti is from Nepal, where Everest is located!";
         }
-
-        // General knowledge responses
-        try {
-            // Try Wikipedia API for factual questions
-            if (q.includes('what is') || q.includes('who is') || q.includes('define') || 
-                q.includes('explain') || q.includes('tell me about')) {
-                const searchTerm = userMessage.replace(/what is|who is|define|explain|tell me about/gi, '').trim();
-                const wikiResponse = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`);
-                if (wikiResponse.ok) {
-                    const data = await wikiResponse.json();
-                    if (data.extract) {
-                        return data.extract.split('.').slice(0, 3).join('.') + '.';
-                    }
-                }
+        
+        // Height/size questions
+        if (q.includes('how tall') || q.includes('how big') || q.includes('how high')) {
+            if (q.includes('eiffel')) return "The Eiffel Tower is 330 meters (1,083 feet) tall, including its antenna. It was the world's tallest structure when completed in 1889.";
+            if (q.includes('statue of liberty')) return "The Statue of Liberty is 93 meters (305 feet) from ground to torch tip. The statue itself is 46 meters (151 feet) tall.";
+            if (q.includes('burj khalifa')) return "Burj Khalifa in Dubai is 828 meters (2,717 feet) tall, making it the world's tallest building since 2010.";
+            if (q.includes('great wall')) return "The Great Wall of China is approximately 21,196 kilometers (13,171 miles) long, built over many centuries.";
+        }
+        
+        // Capitals
+        if (q.includes('capital of') || q.includes('capital city')) {
+            const capitals = {
+                'france': 'Paris', 'germany': 'Berlin', 'japan': 'Tokyo', 'china': 'Beijing',
+                'india': 'New Delhi', 'nepal': 'Kathmandu', 'usa': 'Washington D.C.', 'america': 'Washington D.C.',
+                'uk': 'London', 'england': 'London', 'italy': 'Rome', 'spain': 'Madrid',
+                'australia': 'Canberra', 'canada': 'Ottawa', 'brazil': 'Brasília', 'russia': 'Moscow',
+                'mexico': 'Mexico City', 'south korea': 'Seoul', 'north korea': 'Pyongyang'
+            };
+            for (const [country, capital] of Object.entries(capitals)) {
+                if (q.includes(country)) return `The capital of ${country.charAt(0).toUpperCase() + country.slice(1)} is ${capital}.`;
             }
-        } catch {}
-
-        // Math calculations
-        if (q.match(/[\d+\-*/^()]+/) && (q.includes('calculate') || q.includes('what is') || q.includes('='))) {
+        }
+        
+        // Population
+        if (q.includes('population')) {
+            if (q.includes('world') || q.includes('earth')) return "The world population is approximately 8 billion people as of 2024.";
+            if (q.includes('china')) return "China's population is approximately 1.4 billion people.";
+            if (q.includes('india')) return "India's population is approximately 1.4 billion people, recently surpassing China.";
+            if (q.includes('usa') || q.includes('america') || q.includes('united states')) return "The United States population is approximately 335 million people.";
+        }
+        
+        // Science
+        if (q.includes('speed of light')) return "The speed of light is approximately 299,792,458 meters per second (about 186,282 miles per second) in a vacuum.";
+        if (q.includes('speed of sound')) return "The speed of sound is approximately 343 meters per second (767 mph) at sea level in dry air at 20°C.";
+        if (q.includes('sun') && (q.includes('far') || q.includes('distance'))) return "The Sun is about 150 million kilometers (93 million miles) from Earth, a distance known as 1 Astronomical Unit (AU).";
+        if (q.includes('moon') && (q.includes('far') || q.includes('distance'))) return "The Moon is about 384,400 kilometers (238,855 miles) from Earth on average.";
+        
+        // Math
+        const mathMatch = userMessage.match(/[\d+\-*/().^%\s]+/);
+        if (mathMatch && (q.includes('what is') || q.includes('calculate') || q.includes('='))) {
             try {
-                const mathExpr = userMessage.replace(/[^0-9+\-*/().^%\s]/g, '').trim();
-                if (mathExpr) {
-                    const result = Function('"use strict"; return (' + mathExpr.replace('^', '**') + ')')();
-                    return `The answer is ${result}`;
+                const expr = mathMatch[0].replace(/\^/g, '**').trim();
+                if (expr.length > 2) {
+                    const result = Function('"use strict"; return (' + expr + ')')();
+                    if (!isNaN(result)) return `The answer is ${result.toLocaleString()}.`;
                 }
             } catch {}
         }
-
-        // Greetings
-        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)/)) {
-            const greetings = [
-                "Hello! I'm Ask Milan, your AI assistant. I can answer questions about anything - tech, science, history, or about Milan himself. What would you like to know?",
-                "Hey there! Welcome to Milan's portfolio. I'm here to help with any questions you have. What's on your mind?",
-                "Hi! I'm an AI assistant here to help. Ask me anything - from coding questions to general knowledge!"
-            ];
-            return greetings[Math.floor(Math.random() * greetings.length)];
-        }
-
-        // Coding/Tech questions
-        if (q.includes('code') || q.includes('programming') || q.includes('python') || q.includes('javascript') || 
-            q.includes('how to') || q.includes('tutorial')) {
-            return "I can help with coding questions! For detailed code examples and tutorials, I'd recommend checking out resources like MDN Web Docs, Stack Overflow, or the official documentation. What specific programming concept would you like me to explain?";
-        }
-
-        // Weather
-        if (q.includes('weather')) {
-            return "I don't have access to real-time weather data, but you can check weather.com or your phone's weather app for accurate forecasts. Is there anything else I can help you with?";
-        }
-
+        
         // Time/Date
-        if (q.includes('time') || q.includes('date') || q.includes('today')) {
+        if (q.includes('time') || q.includes('date') || q.includes('today') || q.includes('what day')) {
             const now = new Date();
-            return `The current date and time is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
+            return `Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The current time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
         }
-
-        // Thanks
-        if (q.includes('thank')) {
-            return "You're welcome! Feel free to ask me anything else. I'm here to help!";
+        
+        // Greetings
+        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)\b/)) {
+            return "Hello! I'm Ask Milan, an AI assistant. I can answer questions about almost anything - science, history, geography, math, technology, or about Milan Wosti himself. What would you like to know?";
         }
-
-        // Bye
-        if (q.includes('bye') || q.includes('goodbye')) {
-            return "Goodbye! Thanks for chatting. Feel free to come back anytime you have questions!";
+        
+        // Milan-specific
+        if (q.includes('milan') || q.includes('portfolio') || q.includes('website owner')) {
+            if (q.includes('work') || q.includes('job')) return "Milan Wosti works as an IT Support Engineer at Palo Alto Networks in California. He has 1.5 years of experience in enterprise IT support.";
+            if (q.includes('from') || q.includes('born') || q.includes('nepal')) return "Milan was born in Kathmandu, Nepal - home to Mount Everest and the birthplace of Gautam Buddha.";
+            if (q.includes('skill')) return "Milan is skilled in IT Support, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
+            if (q.includes('contact') || q.includes('hire')) return "You can reach Milan on LinkedIn at linkedin.com/in/milanwosticonnect or use the contact form on this website.";
+            return "Milan Wosti is an IT Support Engineer at Palo Alto Networks, originally from Nepal. Ask me anything specific about him!";
         }
-
-        // Default intelligent response
-        return `That's an interesting question! While I'm working with limited capabilities right now, I can help with questions about Milan Wosti, general knowledge, basic calculations, and more. Could you try rephrasing your question, or ask me something specific about technology, science, or Milan's background?`;
-    }
-
-    function getMilanResponse(q) {
-        if (q.includes('name') || q.includes('who')) {
-            return "This is Milan Wosti's portfolio. He's an IT Support Engineer at Palo Alto Networks, based in Santa Clara, California. Originally from Kathmandu, Nepal!";
+        
+        // Thanks/Bye
+        if (q.includes('thank')) return "You're welcome! Feel free to ask me anything else.";
+        if (q.includes('bye') || q.includes('goodbye')) return "Goodbye! Thanks for chatting with Ask Milan. Come back anytime!";
+        
+        // Who/What is questions - try to give helpful response
+        if (q.startsWith('who is') || q.startsWith('who was')) {
+            const person = userMessage.replace(/who (is|was)/i, '').trim().replace('?', '');
+            return `${person} - I'd need an internet connection to look that up for you. Try asking me about well-known facts, math calculations, or about Milan Wosti!`;
         }
-        if (q.includes('job') || q.includes('work') || q.includes('do')) {
-            return "Milan works as an IT Support Engineer at Palo Alto Networks with 1.5 years of experience. He supports enterprise IT infrastructure, manages identity systems like Okta and Active Directory, and contributes to cybersecurity initiatives.";
+        
+        if (q.startsWith('what is') || q.startsWith('what are')) {
+            const topic = userMessage.replace(/what (is|are)/i, '').trim().replace('?', '');
+            return `Regarding "${topic}" - I'm currently working offline. I can answer questions about geography (capitals, mountains), basic science facts, math, dates, or Milan Wosti. Try one of those!`;
         }
-        if (q.includes('skill') || q.includes('know')) {
-            return "Milan is skilled in IT Support, Data Analysis, Cybersecurity, and works with tools like Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
-        }
-        if (q.includes('contact') || q.includes('reach') || q.includes('hire')) {
-            return "You can connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect, or use the contact form on this website!";
-        }
-        if (q.includes('nepal') || q.includes('from') || q.includes('born')) {
-            return "Milan was born in Kathmandu, Nepal - a beautiful country home to the Himalayas, Mount Everest, and the birthplace of Gautam Buddha. He now lives in California.";
-        }
-        return "Milan Wosti is an IT Support Engineer at Palo Alto Networks in California. He's from Nepal and holds a B.IT degree from KIST College. Feel free to ask me anything specific about him or any other topic!";
+        
+        // Default
+        return "I'm currently running in offline mode. I can still help with: math calculations, world capitals, famous landmarks, basic science facts, dates/times, and anything about Milan Wosti. What would you like to know?";
     }
 
     async function handleSend() {
@@ -713,7 +731,6 @@ If asked about Milan, use this info. For all other questions, answer helpfully l
         input.disabled = true;
         sendBtn.disabled = true;
         
-        // Show typing indicator
         addMessage('', false, true);
         
         try {
@@ -722,7 +739,7 @@ If asked about Milan, use this info. For all other questions, answer helpfully l
             addMessage(response);
         } catch (error) {
             removeTypingIndicator();
-            addMessage("I'm having trouble connecting right now. Please try again in a moment!");
+            addMessage("Sorry, I encountered an error. Please try again!");
         }
         
         input.disabled = false;
