@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuoteOfDay();
     initITFacts();
     initNavigation();
+    initSiteSearch();
     initFloatingTools();
     initLiveData();
     initSidebar();
@@ -216,6 +217,116 @@ function initNavigation() {
                 link.classList.add('active');
             }
         });
+    });
+}
+
+// Site Search
+function initSiteSearch() {
+    const searchInput = document.getElementById('site-search-input');
+    const dropdown = document.getElementById('search-dropdown');
+    
+    // Searchable content on the website
+    const searchableContent = [
+        { title: 'Milan Wosti', section: 'Home', link: '#home', keywords: 'milan wosti name portfolio' },
+        { title: 'IT Support Engineer', section: 'Home', link: '#home', keywords: 'it support engineer job role position' },
+        { title: 'Palo Alto Networks', section: 'Home', link: '#home', keywords: 'palo alto networks panw company work' },
+        { title: 'About Me', section: 'About', link: '#about', keywords: 'about me background story' },
+        { title: 'Nepal - Kathmandu', section: 'About', link: '#about', keywords: 'nepal kathmandu born hometown country himalayas everest buddha' },
+        { title: 'Education - KIST College', section: 'About', link: '#about', keywords: 'education kist college degree bachelor information technology' },
+        { title: 'IT Support Skills', section: 'Skills', link: '#skills', keywords: 'it support skills technical troubleshooting' },
+        { title: 'Data Analysis', section: 'Skills', link: '#skills', keywords: 'data analysis analytics sql excel' },
+        { title: 'Cybersecurity', section: 'Skills', link: '#skills', keywords: 'cybersecurity security cyber' },
+        { title: 'Project Management', section: 'Skills', link: '#skills', keywords: 'project management coordination' },
+        { title: 'Active Directory', section: 'Skills', link: '#skills', keywords: 'active directory ad microsoft' },
+        { title: 'Okta', section: 'Skills', link: '#skills', keywords: 'okta identity access management iam sso' },
+        { title: 'Jamf Pro', section: 'Skills', link: '#skills', keywords: 'jamf pro apple mac management mdm' },
+        { title: 'Microsoft 365', section: 'Skills', link: '#skills', keywords: 'microsoft 365 office outlook teams' },
+        { title: 'AWS', section: 'Skills', link: '#skills', keywords: 'aws amazon web services cloud' },
+        { title: 'Azure AD', section: 'Skills', link: '#skills', keywords: 'azure ad active directory microsoft cloud' },
+        { title: 'Python', section: 'Skills', link: '#skills', keywords: 'python programming coding scripting' },
+        { title: 'PowerShell', section: 'Skills', link: '#skills', keywords: 'powershell scripting automation windows' },
+        { title: 'SQL', section: 'Skills', link: '#skills', keywords: 'sql database query' },
+        { title: 'Docker', section: 'Skills', link: '#skills', keywords: 'docker containers containerization' },
+        { title: 'Linux', section: 'Skills', link: '#skills', keywords: 'linux unix server' },
+        { title: 'Work Experience', section: 'Experience', link: '#experience', keywords: 'work experience job career' },
+        { title: 'Contact Milan', section: 'Contact', link: '#contact', keywords: 'contact email reach connect hire' },
+        { title: 'LinkedIn Profile', section: 'Contact', link: '#contact', keywords: 'linkedin profile social connect' },
+        { title: 'Schedule Meeting', section: 'Contact', link: '#contact', keywords: 'schedule meeting appointment calendar' },
+        { title: 'Send Email', section: 'Contact', link: '#contact', keywords: 'send email message wmilan291@gmail.com' },
+        { title: 'Play Sudoku Game', section: 'Games', link: '#', keywords: 'sudoku game play puzzle', action: 'sudoku' },
+        { title: 'Music Player', section: 'Music', link: '#', keywords: 'music player songs play listen', action: 'music' },
+        { title: 'Ask Milan Chatbot', section: 'Chat', link: '#', keywords: 'ask milan chatbot ai assistant help question', action: 'chat' }
+    ];
+    
+    function search(query) {
+        const q = query.toLowerCase().trim();
+        if (q.length < 2) {
+            dropdown.classList.remove('active');
+            return;
+        }
+        
+        const results = searchableContent.filter(item => 
+            item.title.toLowerCase().includes(q) || 
+            item.keywords.toLowerCase().includes(q) ||
+            item.section.toLowerCase().includes(q)
+        );
+        
+        if (results.length > 0) {
+            dropdown.innerHTML = results.slice(0, 8).map(item => `
+                <div class="search-result" data-link="${item.link}" data-action="${item.action || ''}">
+                    <div class="search-result-title">${item.title}</div>
+                    <div class="search-result-section">${item.section}</div>
+                </div>
+            `).join('');
+            dropdown.classList.add('active');
+        } else {
+            dropdown.innerHTML = '<div class="search-no-results">No results found</div>';
+            dropdown.classList.add('active');
+        }
+    }
+    
+    searchInput.addEventListener('input', () => search(searchInput.value));
+    
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.length >= 2) search(searchInput.value);
+    });
+    
+    // Handle click on search results
+    dropdown.addEventListener('click', (e) => {
+        const result = e.target.closest('.search-result');
+        if (result) {
+            const action = result.dataset.action;
+            const link = result.dataset.link;
+            
+            if (action === 'sudoku') {
+                document.getElementById('sudoku-btn').click();
+            } else if (action === 'music') {
+                document.getElementById('music-btn').click();
+            } else if (action === 'chat') {
+                document.getElementById('chatbox-toggle').click();
+            } else if (link && link !== '#') {
+                window.location.href = link;
+            }
+            
+            dropdown.classList.remove('active');
+            searchInput.value = '';
+            searchInput.blur();
+        }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.site-search')) {
+            dropdown.classList.remove('active');
+        }
+    });
+    
+    // Keyboard navigation
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dropdown.classList.remove('active');
+            searchInput.blur();
+        }
     });
 }
 
