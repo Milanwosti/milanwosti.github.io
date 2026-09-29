@@ -591,85 +591,101 @@ function initMusicPlayer() {
         if (e.target === modal) modal.classList.remove('active');
     });
 
-    // Initialize YouTube Player
-    function initYTPlayer(videoId) {
-        // Create a div for the player if it doesn't exist
-        persistentPlayer.innerHTML = '<div id="yt-player-div"></div>';
+    // Create the YouTube player in the persistent container
+    function createPlayer(videoId) {
+        // Destroy existing player if any
+        if (ytPlayer) {
+            try {
+                ytPlayer.destroy();
+            } catch(e) {}
+        }
+        ytPlayerReady = false;
         
-        ytPlayer = new YT.Player('yt-player-div', {
-            height: '0',
-            width: '0',
+        // Create player div in persistent container
+        persistentPlayer.innerHTML = '<div id="yt-persistent-player"></div>';
+        
+        // Wait for YT API to be ready
+        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+            // API not ready, set up callback
+            window.onYouTubeIframeAPIReady = function() {
+                buildPlayer(videoId);
+            };
+        } else {
+            buildPlayer(videoId);
+        }
+    }
+    
+    function buildPlayer(videoId) {
+        ytPlayer = new YT.Player('yt-persistent-player', {
+            height: '1',
+            width: '1',
             videoId: videoId,
             playerVars: {
                 'autoplay': 1,
                 'controls': 0,
                 'rel': 0,
-                'enablejsapi': 1
+                'enablejsapi': 1,
+                'origin': window.location.origin
             },
             events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
+                'onReady': function(event) {
+                    ytPlayerReady = true;
+                    isPlaying = true;
+                    musicControlIcon.textContent = '⏸️';
+                    event.target.playVideo();
+                },
+                'onStateChange': function(event) {
+                    if (event.data === YT.PlayerState.PLAYING) {
+                        isPlaying = true;
+                        musicControlIcon.textContent = '⏸️';
+                    } else if (event.data === YT.PlayerState.PAUSED) {
+                        isPlaying = false;
+                        musicControlIcon.textContent = '▶️';
+                    } else if (event.data === YT.PlayerState.ENDED) {
+                        isPlaying = false;
+                        musicControlIcon.textContent = '▶️';
+                    }
+                }
             }
         });
     }
 
-    function onPlayerReady(event) {
-        ytPlayerReady = true;
-        event.target.playVideo();
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data === YT.PlayerState.PLAYING) {
-            isPlaying = true;
-            musicControlIcon.textContent = '⏸️';
-        } else if (event.data === YT.PlayerState.PAUSED) {
-            isPlaying = false;
-            musicControlIcon.textContent = '▶️';
-        } else if (event.data === YT.PlayerState.ENDED) {
-            isPlaying = false;
-            musicControlIcon.textContent = '▶️';
-        }
-    }
-
     function playTrack(videoId) {
         currentVideoId = videoId;
-        isPlaying = true;
         
-        // Show in modal player (visual only)
-        playerContainer.innerHTML = `<iframe id="modal-player" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        // Show visual player in modal
+        playerContainer.innerHTML = `<iframe id="modal-player" src="https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
         
-        // Initialize or load new video in YT Player
-        if (ytPlayer && ytPlayerReady) {
-            ytPlayer.loadVideoById(videoId);
-        } else if (typeof YT !== 'undefined' && YT.Player) {
-            initYTPlayer(videoId);
-        } else {
-            // Fallback: wait for API to load
-            window.onYouTubeIframeAPIReady = function() {
-                initYTPlayer(videoId);
-            };
-        }
+        // Create the actual audio player
+        createPlayer(videoId);
         
         // Show control button and now playing
         musicControl.style.display = 'block';
         musicControlIcon.textContent = '⏸️';
         nowPlaying.style.display = 'block';
+        isPlaying = true;
     }
 
     function togglePlayPause() {
         if (!ytPlayer || !ytPlayerReady) {
-            // Fallback for when YT player isn't ready
+            console.log('Player not ready');
             return;
         }
         
-        if (isPlaying) {
-            ytPlayer.pauseVideo();
-            musicControlIcon.textContent = '▶️';
-            isPlaying = false;
-        } else {
-            ytPlayer.playVideo();
-            musicControlIcon.textContent = '⏸️';
-            isPlaying = true;
+        try {
+            const playerState = ytPlayer.getPlayerState();
+            
+            if (playerState === YT.PlayerState.PLAYING) {
+                ytPlayer.pauseVideo();
+                musicControlIcon.textContent = '▶️';
+                isPlaying = false;
+            } else {
+                ytPlayer.playVideo();
+                musicControlIcon.textContent = '⏸️';
+                isPlaying = true;
+            }
+        } catch(e) {
+            console.log('Error toggling playback:', e);
         }
     }
 
