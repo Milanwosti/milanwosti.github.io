@@ -89,7 +89,7 @@ body {
 .live-sidebar {
     position: fixed;
     top: 120px;
-    right: 1rem;
+    left: 1rem;
     width: 240px;
     z-index: 50;
     display: flex;
@@ -100,7 +100,7 @@ body {
 
 .live-sidebar.hidden {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(-100%);
     pointer-events: none;
 }
 
