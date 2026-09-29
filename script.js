@@ -64,7 +64,7 @@ function initStatusBar() {
 
 // Quote of the Day
 function initQuoteOfDay() {
-    const quoteText = document.getElementById('quote-text');
+    const brandQuote = document.getElementById('brand-quote');
     
     const quotes = [
         "The only way to do great work is to love what you do. — Steve Jobs",
@@ -103,7 +103,7 @@ function initQuoteOfDay() {
     // Get quote based on day of year (changes daily)
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const quoteIndex = dayOfYear % quotes.length;
-    quoteText.textContent = `"${quotes[quoteIndex]}"`;
+    brandQuote.textContent = `💡 "${quotes[quoteIndex]}"`;
 }
 
 // Navigation

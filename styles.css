@@ -183,11 +183,20 @@ body {
 }
 
 .brand {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--white);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--gray-400);
     text-decoration: none;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    font-style: italic;
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.brand:hover {
+    color: var(--gray-200);
 }
 
 .nav-links {
@@ -285,38 +294,6 @@ body {
 
 .status-bar .divider {
     color: var(--gray-700);
-}
-
-/* Quote Banner */
-.quote-banner {
-    position: fixed;
-    top: 95px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 998;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
-    background: rgba(20, 20, 20, 0.9);
-    border: 1px solid var(--gray-800);
-    border-radius: 50px;
-    backdrop-filter: blur(10px);
-    max-width: 90%;
-}
-
-.quote-icon {
-    font-size: 0.875rem;
-}
-
-.quote-text {
-    font-size: 0.7rem;
-    color: var(--gray-400);
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 500px;
 }
 
 /* Container */
