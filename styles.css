@@ -198,6 +198,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem 2rem;
+    padding-left: 450px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -206,9 +207,9 @@ body {
 /* Profile & Quote Container (Top Left Corner) */
 .profile-quote-container {
     position: fixed;
-    top: 75px;
+    top: 12px;
     left: 1rem;
-    z-index: 999;
+    z-index: 1001;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -217,7 +218,7 @@ body {
     border-radius: 8px;
     padding: 0.5rem 1rem;
     backdrop-filter: blur(10px);
-    max-width: 320px;
+    max-width: 400px;
 }
 
 /* Profile Picture */
