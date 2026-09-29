@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMusicPlayer();
     initSudoku();
     initContactForm();
+    initChatbox();
 });
 
 // Status Bar - Time, Date, Weather
@@ -233,15 +234,29 @@ async function fetchStocks() {
 function fetchNews() {
     const container = document.getElementById('news-data');
     const headlines = [
-        { title: 'Tech stocks rally as AI investments surge', source: 'Reuters' },
-        { title: 'Federal Reserve signals potential rate decisions', source: 'Bloomberg' },
-        { title: 'Global markets respond to economic indicators', source: 'CNBC' }
+        { 
+            title: 'Tech stocks rally as AI investments surge', 
+            source: 'Reuters',
+            url: 'https://www.reuters.com/technology/'
+        },
+        { 
+            title: 'Federal Reserve signals potential rate decisions', 
+            source: 'Bloomberg',
+            url: 'https://www.bloomberg.com/markets'
+        },
+        { 
+            title: 'Global markets respond to economic indicators', 
+            source: 'CNBC',
+            url: 'https://www.cnbc.com/world-markets/'
+        }
     ];
     
     container.innerHTML = headlines.map(n => `
         <div class="news-item">
-            ${n.title}
-            <span class="news-source">${n.source}</span>
+            <a href="${n.url}" target="_blank" rel="noopener noreferrer">
+                ${n.title}
+                <span class="news-source">${n.source} ↗</span>
+            </a>
         </div>
     `).join('');
 }
@@ -469,3 +484,149 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
+// Chatbox - Ask Milan
+function initChatbox() {
+    const toggle = document.getElementById('chatbox-toggle');
+    const window = document.getElementById('chatbox-window');
+    const closeBtn = document.getElementById('chatbox-close');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    const messages = document.getElementById('chatbox-messages');
+
+    // Knowledge base about Milan
+    const knowledge = {
+        name: "Milan Wosti",
+        role: "IT Support Engineer",
+        company: "Palo Alto Networks",
+        experience: "1.5 years",
+        location: "Santa Clara County, California",
+        origin: "Kathmandu, Nepal",
+        education: "Bachelor's in Information Technology from KIST College",
+        skills: ["IT Support", "Data Analysis", "Cybersecurity", "Project Management", "SQL", "Microsoft Excel", "Active Directory", "Okta", "Jamf", "Microsoft 365", "AWS", "Azure AD", "Python", "PowerShell"],
+        about: "Milan was born in Kathmandu, Nepal - home to the Himalayas and Mount Everest, and the birthplace of Gautam Buddha. He now works as an IT Support Engineer at Palo Alto Networks in California.",
+        hobbies: "Milan is fond of robots and AI technology.",
+        contact: "You can connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect"
+    };
+
+    function getResponse(question) {
+        const q = question.toLowerCase();
+        
+        // Greetings
+        if (q.match(/^(hi|hello|hey|howdy|greetings)/)) {
+            return `Hello! I'm Milan's virtual assistant. How can I help you learn more about Milan today?`;
+        }
+        
+        // Name
+        if (q.includes('name') || q.includes('who is') || q.includes('who are')) {
+            return `His name is ${knowledge.name}. He's an ${knowledge.role} at ${knowledge.company}.`;
+        }
+        
+        // Job/Role/Work
+        if (q.includes('job') || q.includes('work') || q.includes('role') || q.includes('position') || q.includes('do for')) {
+            return `Milan works as an ${knowledge.role} at ${knowledge.company}. He has ${knowledge.experience} of experience supporting enterprise IT infrastructure, managing identity systems, and contributing to cybersecurity initiatives.`;
+        }
+        
+        // Company
+        if (q.includes('company') || q.includes('palo alto') || q.includes('panw') || q.includes('employer')) {
+            return `Milan works at ${knowledge.company}, one of the world's leading cybersecurity companies. He's been there for ${knowledge.experience}.`;
+        }
+        
+        // Experience
+        if (q.includes('experience') || q.includes('how long') || q.includes('years')) {
+            return `Milan has ${knowledge.experience} of professional experience at ${knowledge.company} as an ${knowledge.role}.`;
+        }
+        
+        // Location
+        if (q.includes('location') || q.includes('where') || q.includes('live') || q.includes('based')) {
+            return `Milan is currently based in ${knowledge.location}. He's originally from ${knowledge.origin}.`;
+        }
+        
+        // Origin/Nepal
+        if (q.includes('nepal') || q.includes('from') || q.includes('origin') || q.includes('born') || q.includes('hometown') || q.includes('country')) {
+            return `Milan was born in ${knowledge.origin}. Nepal is famous for the Himalayas, Mount Everest (the world's highest peak), and being the birthplace of Gautam Buddha.`;
+        }
+        
+        // Education
+        if (q.includes('education') || q.includes('degree') || q.includes('study') || q.includes('college') || q.includes('university') || q.includes('school')) {
+            return `Milan holds a ${knowledge.education}.`;
+        }
+        
+        // Skills
+        if (q.includes('skill') || q.includes('know') || q.includes('can do') || q.includes('expertise') || q.includes('good at')) {
+            return `Milan's key skills include: ${knowledge.skills.slice(0, 8).join(', ')}, and more. He's proficient with tools like ${knowledge.skills.slice(8).join(', ')}.`;
+        }
+        
+        // Tools
+        if (q.includes('tool') || q.includes('software') || q.includes('technology') || q.includes('tech stack')) {
+            return `Milan works with various IT tools including: Active Directory, Okta, Jamf Pro, Microsoft 365, AWS, Azure AD, CrowdStrike, ServiceNow, Docker, Python, PowerShell, and more.`;
+        }
+        
+        // Contact
+        if (q.includes('contact') || q.includes('reach') || q.includes('email') || q.includes('linkedin') || q.includes('connect') || q.includes('hire')) {
+            return `${knowledge.contact}. You can also use the contact form on this website to send Milan a message directly!`;
+        }
+        
+        // Hobbies/Interests
+        if (q.includes('hobby') || q.includes('interest') || q.includes('like') || q.includes('fun') || q.includes('free time')) {
+            return `${knowledge.hobbies} He's passionate about technology and staying updated with the latest in IT and cybersecurity.`;
+        }
+        
+        // About
+        if (q.includes('about') || q.includes('tell me') || q.includes('describe')) {
+            return knowledge.about;
+        }
+        
+        // Thanks
+        if (q.includes('thank') || q.includes('thanks')) {
+            return `You're welcome! Feel free to ask if you have any other questions about Milan.`;
+        }
+        
+        // Bye
+        if (q.includes('bye') || q.includes('goodbye') || q.includes('see you')) {
+            return `Goodbye! Thanks for visiting Milan's portfolio. Have a great day!`;
+        }
+        
+        // Default response
+        return `I can tell you about Milan's work experience, skills, education, background, or how to contact him. What would you like to know?`;
+    }
+
+    function addMessage(text, isUser = false) {
+        const msg = document.createElement('div');
+        msg.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+        msg.innerHTML = `<p>${text}</p>`;
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function handleSend() {
+        const text = input.value.trim();
+        if (!text) return;
+        
+        addMessage(text, true);
+        input.value = '';
+        
+        // Simulate typing delay
+        setTimeout(() => {
+            const response = getResponse(text);
+            addMessage(response);
+        }, 500);
+    }
+
+    toggle.addEventListener('click', () => {
+        window.classList.add('active');
+        toggle.classList.add('hidden');
+        input.focus();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        window.classList.remove('active');
+        toggle.classList.remove('hidden');
+    });
+
+    sendBtn.addEventListener('click', handleSend);
+    
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSend();
+    });
+}
