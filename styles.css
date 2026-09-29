@@ -1129,6 +1129,30 @@ body {
     border-bottom-left-radius: 4px;
 }
 
+.chat-message.typing .typing-dots {
+    display: inline-flex;
+    gap: 3px;
+}
+
+.chat-message.typing .typing-dots span {
+    animation: typingBounce 1.4s infinite;
+    font-size: 1.5rem;
+    line-height: 0.5;
+}
+
+.chat-message.typing .typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.chat-message.typing .typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}
+
 .chat-message.user {
     background: var(--white);
     color: var(--black);
@@ -1179,6 +1203,12 @@ body {
 
 .chatbox-input button:hover {
     background: var(--gray-200);
+}
+
+.chatbox-input button:disabled,
+.chatbox-input input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* News Links */

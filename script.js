@@ -485,148 +485,265 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Chatbox - Ask Milan
+// Chatbox - Ask Milan (AI-Powered)
 function initChatbox() {
     const toggle = document.getElementById('chatbox-toggle');
-    const window = document.getElementById('chatbox-window');
+    const chatWindow = document.getElementById('chatbox-window');
     const closeBtn = document.getElementById('chatbox-close');
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
     const messages = document.getElementById('chatbox-messages');
 
-    // Knowledge base about Milan
-    const knowledge = {
-        name: "Milan Wosti",
-        role: "IT Support Engineer",
-        company: "Palo Alto Networks",
-        experience: "1.5 years",
-        location: "Santa Clara County, California",
-        origin: "Kathmandu, Nepal",
-        education: "Bachelor's in Information Technology from KIST College",
-        skills: ["IT Support", "Data Analysis", "Cybersecurity", "Project Management", "SQL", "Microsoft Excel", "Active Directory", "Okta", "Jamf", "Microsoft 365", "AWS", "Azure AD", "Python", "PowerShell"],
-        about: "Milan was born in Kathmandu, Nepal - home to the Himalayas and Mount Everest, and the birthplace of Gautam Buddha. He now works as an IT Support Engineer at Palo Alto Networks in California.",
-        hobbies: "Milan is fond of robots and AI technology.",
-        contact: "You can connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect"
-    };
+    // Conversation history for context
+    let conversationHistory = [];
 
-    function getResponse(question) {
-        const q = question.toLowerCase();
-        
-        // Greetings
-        if (q.match(/^(hi|hello|hey|howdy|greetings)/)) {
-            return `Hello! I'm Milan's virtual assistant. How can I help you learn more about Milan today?`;
-        }
-        
-        // Name
-        if (q.includes('name') || q.includes('who is') || q.includes('who are')) {
-            return `His name is ${knowledge.name}. He's an ${knowledge.role} at ${knowledge.company}.`;
-        }
-        
-        // Job/Role/Work
-        if (q.includes('job') || q.includes('work') || q.includes('role') || q.includes('position') || q.includes('do for')) {
-            return `Milan works as an ${knowledge.role} at ${knowledge.company}. He has ${knowledge.experience} of experience supporting enterprise IT infrastructure, managing identity systems, and contributing to cybersecurity initiatives.`;
-        }
-        
-        // Company
-        if (q.includes('company') || q.includes('palo alto') || q.includes('panw') || q.includes('employer')) {
-            return `Milan works at ${knowledge.company}, one of the world's leading cybersecurity companies. He's been there for ${knowledge.experience}.`;
-        }
-        
-        // Experience
-        if (q.includes('experience') || q.includes('how long') || q.includes('years')) {
-            return `Milan has ${knowledge.experience} of professional experience at ${knowledge.company} as an ${knowledge.role}.`;
-        }
-        
-        // Location
-        if (q.includes('location') || q.includes('where') || q.includes('live') || q.includes('based')) {
-            return `Milan is currently based in ${knowledge.location}. He's originally from ${knowledge.origin}.`;
-        }
-        
-        // Origin/Nepal
-        if (q.includes('nepal') || q.includes('from') || q.includes('origin') || q.includes('born') || q.includes('hometown') || q.includes('country')) {
-            return `Milan was born in ${knowledge.origin}. Nepal is famous for the Himalayas, Mount Everest (the world's highest peak), and being the birthplace of Gautam Buddha.`;
-        }
-        
-        // Education
-        if (q.includes('education') || q.includes('degree') || q.includes('study') || q.includes('college') || q.includes('university') || q.includes('school')) {
-            return `Milan holds a ${knowledge.education}.`;
-        }
-        
-        // Skills
-        if (q.includes('skill') || q.includes('know') || q.includes('can do') || q.includes('expertise') || q.includes('good at')) {
-            return `Milan's key skills include: ${knowledge.skills.slice(0, 8).join(', ')}, and more. He's proficient with tools like ${knowledge.skills.slice(8).join(', ')}.`;
-        }
-        
-        // Tools
-        if (q.includes('tool') || q.includes('software') || q.includes('technology') || q.includes('tech stack')) {
-            return `Milan works with various IT tools including: Active Directory, Okta, Jamf Pro, Microsoft 365, AWS, Azure AD, CrowdStrike, ServiceNow, Docker, Python, PowerShell, and more.`;
-        }
-        
-        // Contact
-        if (q.includes('contact') || q.includes('reach') || q.includes('email') || q.includes('linkedin') || q.includes('connect') || q.includes('hire')) {
-            return `${knowledge.contact}. You can also use the contact form on this website to send Milan a message directly!`;
-        }
-        
-        // Hobbies/Interests
-        if (q.includes('hobby') || q.includes('interest') || q.includes('like') || q.includes('fun') || q.includes('free time')) {
-            return `${knowledge.hobbies} He's passionate about technology and staying updated with the latest in IT and cybersecurity.`;
-        }
-        
-        // About
-        if (q.includes('about') || q.includes('tell me') || q.includes('describe')) {
-            return knowledge.about;
-        }
-        
-        // Thanks
-        if (q.includes('thank') || q.includes('thanks')) {
-            return `You're welcome! Feel free to ask if you have any other questions about Milan.`;
-        }
-        
-        // Bye
-        if (q.includes('bye') || q.includes('goodbye') || q.includes('see you')) {
-            return `Goodbye! Thanks for visiting Milan's portfolio. Have a great day!`;
-        }
-        
-        // Default response
-        return `I can tell you about Milan's work experience, skills, education, background, or how to contact him. What would you like to know?`;
-    }
+    // Milan's context for the AI
+    const milanContext = `You are "Ask Milan", an AI assistant on Milan Wosti's portfolio website. You can answer ANY question on ANY topic - just like ChatGPT or Gemini. Be helpful, friendly, and knowledgeable.
 
-    function addMessage(text, isUser = false) {
+About Milan Wosti (the website owner):
+- Name: Milan Wosti
+- Role: IT Support Engineer at Palo Alto Networks (1.5 years)
+- Location: Santa Clara County, California
+- Origin: Born in Kathmandu, Nepal (home to Himalayas, Mount Everest, birthplace of Gautam Buddha)
+- Education: Bachelor's in Information Technology from KIST College
+- Skills: IT Support, Data Analysis, Cybersecurity, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, SQL
+- Contact: linkedin.com/in/milanwosticonnect
+- Interests: Robots and AI technology
+
+If asked about Milan, use this info. For all other questions, answer helpfully like a general AI assistant. Keep responses concise but informative (2-4 sentences typically). Be conversational and friendly.`;
+
+    function addMessage(text, isUser = false, isTyping = false) {
         const msg = document.createElement('div');
         msg.className = `chat-message ${isUser ? 'user' : 'bot'}`;
-        msg.innerHTML = `<p>${text}</p>`;
+        if (isTyping) {
+            msg.classList.add('typing');
+            msg.innerHTML = `<p><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></p>`;
+        } else {
+            msg.innerHTML = `<p>${text}</p>`;
+        }
         messages.appendChild(msg);
         messages.scrollTop = messages.scrollHeight;
+        return msg;
     }
 
-    function handleSend() {
+    function removeTypingIndicator() {
+        const typing = messages.querySelector('.typing');
+        if (typing) typing.remove();
+    }
+
+    async function getAIResponse(userMessage) {
+        // Add user message to history
+        conversationHistory.push({ role: 'user', content: userMessage });
+        
+        // Keep only last 10 messages for context
+        if (conversationHistory.length > 10) {
+            conversationHistory = conversationHistory.slice(-10);
+        }
+
+        try {
+            // Using free AI API (DuckDuckGo AI)
+            const response = await fetch('https://api.duckduckgo.com/duckchat/v1/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-vqd-4': await getVQD()
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: milanContext },
+                        ...conversationHistory
+                    ]
+                })
+            });
+
+            if (!response.ok) throw new Error('API error');
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullResponse = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+                        try {
+                            const json = JSON.parse(data);
+                            if (json.message) {
+                                fullResponse += json.message;
+                            }
+                        } catch {}
+                    }
+                }
+            }
+
+            if (fullResponse) {
+                conversationHistory.push({ role: 'assistant', content: fullResponse });
+                return fullResponse;
+            }
+            throw new Error('No response');
+
+        } catch (error) {
+            // Fallback to Hugging Face free inference
+            return await getFallbackResponse(userMessage);
+        }
+    }
+
+    async function getVQD() {
+        try {
+            const response = await fetch('https://duckduckgo.com/duckchat/v1/status', {
+                headers: { 'x-vqd-accept': '1' }
+            });
+            return response.headers.get('x-vqd-4') || '';
+        } catch {
+            return '';
+        }
+    }
+
+    async function getFallbackResponse(userMessage) {
+        // Smart fallback with local AI-like responses
+        const q = userMessage.toLowerCase();
+        
+        // Check if asking about Milan
+        if (q.includes('milan') || q.includes('you') || q.includes('owner') || q.includes('portfolio') || 
+            q.includes('website') || q.includes('who made') || q.includes('creator')) {
+            return getMilanResponse(q);
+        }
+
+        // General knowledge responses
+        try {
+            // Try Wikipedia API for factual questions
+            if (q.includes('what is') || q.includes('who is') || q.includes('define') || 
+                q.includes('explain') || q.includes('tell me about')) {
+                const searchTerm = userMessage.replace(/what is|who is|define|explain|tell me about/gi, '').trim();
+                const wikiResponse = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`);
+                if (wikiResponse.ok) {
+                    const data = await wikiResponse.json();
+                    if (data.extract) {
+                        return data.extract.split('.').slice(0, 3).join('.') + '.';
+                    }
+                }
+            }
+        } catch {}
+
+        // Math calculations
+        if (q.match(/[\d+\-*/^()]+/) && (q.includes('calculate') || q.includes('what is') || q.includes('='))) {
+            try {
+                const mathExpr = userMessage.replace(/[^0-9+\-*/().^%\s]/g, '').trim();
+                if (mathExpr) {
+                    const result = Function('"use strict"; return (' + mathExpr.replace('^', '**') + ')')();
+                    return `The answer is ${result}`;
+                }
+            } catch {}
+        }
+
+        // Greetings
+        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)/)) {
+            const greetings = [
+                "Hello! I'm Ask Milan, your AI assistant. I can answer questions about anything - tech, science, history, or about Milan himself. What would you like to know?",
+                "Hey there! Welcome to Milan's portfolio. I'm here to help with any questions you have. What's on your mind?",
+                "Hi! I'm an AI assistant here to help. Ask me anything - from coding questions to general knowledge!"
+            ];
+            return greetings[Math.floor(Math.random() * greetings.length)];
+        }
+
+        // Coding/Tech questions
+        if (q.includes('code') || q.includes('programming') || q.includes('python') || q.includes('javascript') || 
+            q.includes('how to') || q.includes('tutorial')) {
+            return "I can help with coding questions! For detailed code examples and tutorials, I'd recommend checking out resources like MDN Web Docs, Stack Overflow, or the official documentation. What specific programming concept would you like me to explain?";
+        }
+
+        // Weather
+        if (q.includes('weather')) {
+            return "I don't have access to real-time weather data, but you can check weather.com or your phone's weather app for accurate forecasts. Is there anything else I can help you with?";
+        }
+
+        // Time/Date
+        if (q.includes('time') || q.includes('date') || q.includes('today')) {
+            const now = new Date();
+            return `The current date and time is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
+        }
+
+        // Thanks
+        if (q.includes('thank')) {
+            return "You're welcome! Feel free to ask me anything else. I'm here to help!";
+        }
+
+        // Bye
+        if (q.includes('bye') || q.includes('goodbye')) {
+            return "Goodbye! Thanks for chatting. Feel free to come back anytime you have questions!";
+        }
+
+        // Default intelligent response
+        return `That's an interesting question! While I'm working with limited capabilities right now, I can help with questions about Milan Wosti, general knowledge, basic calculations, and more. Could you try rephrasing your question, or ask me something specific about technology, science, or Milan's background?`;
+    }
+
+    function getMilanResponse(q) {
+        if (q.includes('name') || q.includes('who')) {
+            return "This is Milan Wosti's portfolio. He's an IT Support Engineer at Palo Alto Networks, based in Santa Clara, California. Originally from Kathmandu, Nepal!";
+        }
+        if (q.includes('job') || q.includes('work') || q.includes('do')) {
+            return "Milan works as an IT Support Engineer at Palo Alto Networks with 1.5 years of experience. He supports enterprise IT infrastructure, manages identity systems like Okta and Active Directory, and contributes to cybersecurity initiatives.";
+        }
+        if (q.includes('skill') || q.includes('know')) {
+            return "Milan is skilled in IT Support, Data Analysis, Cybersecurity, and works with tools like Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
+        }
+        if (q.includes('contact') || q.includes('reach') || q.includes('hire')) {
+            return "You can connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect, or use the contact form on this website!";
+        }
+        if (q.includes('nepal') || q.includes('from') || q.includes('born')) {
+            return "Milan was born in Kathmandu, Nepal - a beautiful country home to the Himalayas, Mount Everest, and the birthplace of Gautam Buddha. He now lives in California.";
+        }
+        return "Milan Wosti is an IT Support Engineer at Palo Alto Networks in California. He's from Nepal and holds a B.IT degree from KIST College. Feel free to ask me anything specific about him or any other topic!";
+    }
+
+    async function handleSend() {
         const text = input.value.trim();
         if (!text) return;
         
         addMessage(text, true);
         input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
         
-        // Simulate typing delay
-        setTimeout(() => {
-            const response = getResponse(text);
+        // Show typing indicator
+        addMessage('', false, true);
+        
+        try {
+            const response = await getAIResponse(text);
+            removeTypingIndicator();
             addMessage(response);
-        }, 500);
+        } catch (error) {
+            removeTypingIndicator();
+            addMessage("I'm having trouble connecting right now. Please try again in a moment!");
+        }
+        
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
     }
 
     toggle.addEventListener('click', () => {
-        window.classList.add('active');
+        chatWindow.classList.add('active');
         toggle.classList.add('hidden');
         input.focus();
     });
 
     closeBtn.addEventListener('click', () => {
-        window.classList.remove('active');
+        chatWindow.classList.remove('active');
         toggle.classList.remove('hidden');
     });
 
     sendBtn.addEventListener('click', handleSend);
     
     input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSend();
+        if (e.key === 'Enter' && !input.disabled) handleSend();
     });
 }
