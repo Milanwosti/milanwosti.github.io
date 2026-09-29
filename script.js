@@ -290,13 +290,16 @@ function initSidebar() {
     });
 }
 
-// Music Player with YouTube Embed
+// Music Player with YouTube Search
 function initMusicPlayer() {
     const btn = document.getElementById('music-btn');
     const modal = document.getElementById('music-modal');
     const closeBtn = document.getElementById('music-close');
-    const tracks = document.querySelectorAll('.track-item');
+    const tracksContainer = document.getElementById('music-tracks');
+    const searchResults = document.getElementById('search-results');
     const playerContainer = document.getElementById('youtube-player');
+    const searchInput = document.getElementById('music-search-input');
+    const searchBtn = document.getElementById('music-search-btn');
 
     btn.addEventListener('click', () => modal.classList.add('active'));
     closeBtn.addEventListener('click', () => modal.classList.remove('active'));
@@ -304,23 +307,116 @@ function initMusicPlayer() {
         if (e.target === modal) modal.classList.remove('active');
     });
 
-    tracks.forEach(track => {
-        const playBtn = track.querySelector('.play-btn');
-        playBtn.addEventListener('click', () => {
+    // Play track function
+    function playTrack(videoId, trackName) {
+        playerContainer.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        `;
+    }
+
+    // Handle default tracks
+    tracksContainer.addEventListener('click', (e) => {
+        const playBtn = e.target.closest('.play-btn');
+        if (playBtn) {
+            const track = playBtn.closest('.track-item');
             const videoId = track.dataset.video;
-            playerContainer.innerHTML = `
-                <iframe 
-                    src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            `;
+            const trackName = track.querySelector('.track-name').textContent;
+            playTrack(videoId, trackName);
+        }
+    });
+
+    // Handle search results
+    searchResults.addEventListener('click', (e) => {
+        const playBtn = e.target.closest('.play-btn');
+        if (playBtn) {
+            const track = playBtn.closest('.track-item');
+            const videoId = track.dataset.video;
+            const trackName = track.querySelector('.track-name').textContent;
+            playTrack(videoId, trackName);
+        }
+    });
+
+    // Search function using Invidious API (YouTube frontend)
+    async function searchMusic(query) {
+        searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+        
+        try {
+            // Try multiple Invidious instances
+            const instances = [
+                'https://inv.nadeko.net',
+                'https://invidious.nerdvpn.de',
+                'https://yt.artemislena.eu'
+            ];
             
-            // Update active state
-            tracks.forEach(t => t.style.background = '');
-            track.style.background = 'var(--gray-800)';
-        });
+            let data = null;
+            for (const instance of instances) {
+                try {
+                    const response = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query + ' music')}&type=video`, {
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    if (response.ok) {
+                        data = await response.json();
+                        break;
+                    }
+                } catch {}
+            }
+
+            if (data && data.length > 0) {
+                const results = data.slice(0, 5).map(video => `
+                    <div class="track-item" data-video="${video.videoId}">
+                        <span class="track-name">${video.title.substring(0, 50)}${video.title.length > 50 ? '...' : ''}</span>
+                        <button class="play-btn">▶</button>
+                    </div>
+                `).join('');
+                searchResults.innerHTML = results;
+            } else {
+                // Fallback: Direct YouTube embed search
+                searchResults.innerHTML = `
+                    <div class="track-item" data-video="" data-search="${encodeURIComponent(query)}">
+                        <span class="track-name">Play: "${query}" on YouTube</span>
+                        <button class="play-btn">▶</button>
+                    </div>
+                `;
+                
+                // Update click handler for search fallback
+                const fallbackTrack = searchResults.querySelector('.track-item');
+                fallbackTrack.querySelector('.play-btn').addEventListener('click', () => {
+                    playerContainer.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    `;
+                });
+            }
+        } catch (error) {
+            // Ultimate fallback
+            searchResults.innerHTML = `
+                <div class="track-item">
+                    <span class="track-name">Search "${query}" on YouTube</span>
+                    <button class="play-btn" onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(query)}', '_blank')">↗</button>
+                </div>
+            `;
+        }
+    }
+
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (query) searchMusic(query);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) searchMusic(query);
+        }
     });
 }
 
@@ -547,122 +643,117 @@ For ALL other questions, answer accurately and helpfully. Keep responses concise
             conversationHistory = conversationHistory.slice(-20);
         }
 
-        // Try multiple AI APIs in order
-        let response = await tryGoogleGemini(userMessage);
-        if (!response) response = await tryOpenRouter(userMessage);
-        if (!response) response = await tryFreeGPT(userMessage);
-        if (!response) response = getSmartFallback(userMessage);
-        
-        conversationHistory.push({ role: 'assistant', content: response });
-        return response;
+        // First try Wikipedia for factual questions
+        const wikiResponse = await tryWikipedia(userMessage);
+        if (wikiResponse) {
+            conversationHistory.push({ role: 'assistant', content: wikiResponse });
+            return wikiResponse;
+        }
+
+        // Then try local knowledge base
+        const localResponse = getSmartFallback(userMessage);
+        conversationHistory.push({ role: 'assistant', content: localResponse });
+        return localResponse;
     }
 
-    // Google Gemini API (free tier)
-    async function tryGoogleGemini(userMessage) {
+    // Wikipedia API - great for factual questions
+    async function tryWikipedia(query) {
         try {
-            const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyAJkBNTuitFqLMzd7gKsz-n6cLOyxfBrZE', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `${systemPrompt}\n\nUser: ${userMessage}\n\nAssistant:` }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 500
+            // Extract search term from question
+            let searchTerm = query
+                .replace(/^(what|who|where|when|why|how|tell me about|explain|define|describe)\s+(is|are|was|were|do|does|did)?\s*/i, '')
+                .replace(/[?!.,]/g, '')
+                .trim();
+            
+            if (searchTerm.length < 2) return null;
+
+            // Try direct page lookup first
+            const response = await fetch(
+                `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`,
+                { signal: AbortSignal.timeout(5000) }
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.extract && data.extract.length > 50) {
+                    const sentences = data.extract.split('. ').slice(0, 3).join('. ');
+                    return sentences + (sentences.endsWith('.') ? '' : '.');
+                }
+            }
+
+            // Try Wikipedia search if direct lookup fails
+            const searchResponse = await fetch(
+                `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json&origin=*`,
+                { signal: AbortSignal.timeout(5000) }
+            );
+            
+            if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                if (searchData.query?.search?.[0]?.title) {
+                    const title = searchData.query.search[0].title;
+                    const summaryResponse = await fetch(
+                        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+                        { signal: AbortSignal.timeout(5000) }
+                    );
+                    if (summaryResponse.ok) {
+                        const summaryData = await summaryResponse.json();
+                        if (summaryData.extract && summaryData.extract.length > 50) {
+                            const sentences = summaryData.extract.split('. ').slice(0, 3).join('. ');
+                            return sentences + (sentences.endsWith('.') ? '' : '.');
+                        }
                     }
-                })
-            });
-            
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-        } catch {
-            return null;
-        }
+                }
+            }
+        } catch {}
+        return null;
     }
 
-    // OpenRouter free models
-    async function tryOpenRouter(userMessage) {
-        try {
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': window.location.href,
-                    'X-Title': 'Ask Milan Portfolio'
-                },
-                body: JSON.stringify({
-                    model: 'mistralai/mistral-7b-instruct:free',
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        ...conversationHistory
-                    ],
-                    max_tokens: 500
-                })
-            });
-            
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data?.choices?.[0]?.message?.content || null;
-        } catch {
-            return null;
-        }
-    }
-
-    // Free GPT API
-    async function tryFreeGPT(userMessage) {
-        try {
-            const response = await fetch('https://api.pawan.krd/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer pk-this-is-a-real-free-pool-token-for-everyone'
-                },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        ...conversationHistory
-                    ],
-                    max_tokens: 500
-                })
-            });
-            
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data?.choices?.[0]?.message?.content || null;
-        } catch {
-            return null;
-        }
-    }
-
-    // Smart fallback with real knowledge
+    // Smart fallback with comprehensive knowledge
     function getSmartFallback(userMessage) {
         const q = userMessage.toLowerCase();
         
-        // Mount Everest
-        if (q.includes('everest') || (q.includes('tallest') && q.includes('mountain')) || (q.includes('highest') && q.includes('mountain'))) {
-            return "Mount Everest is 8,848.86 meters (29,031.7 feet) tall, making it Earth's highest mountain above sea level. It's located in the Himalayas on the border between Nepal and Tibet. Fun fact: Milan Wosti is from Nepal, where Everest is located!";
+        // Greetings first
+        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)\b/)) {
+            return "Hello! I'm Ask Milan, an AI assistant powered by Wikipedia. I can answer questions about almost anything - people, places, science, history, math, or about Milan Wosti. What would you like to know?";
+        }
+
+        // Milan-specific questions
+        if (q.includes('milan') || q.includes('portfolio') || q.includes('website') || q.includes('owner')) {
+            if (q.includes('work') || q.includes('job')) return "Milan Wosti works as an IT Support Engineer at Palo Alto Networks in California with 1.5 years of experience.";
+            if (q.includes('from') || q.includes('born') || q.includes('nepal')) return "Milan was born in Kathmandu, Nepal - home to Mount Everest and the birthplace of Gautam Buddha.";
+            if (q.includes('skill')) return "Milan is skilled in IT Support, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
+            if (q.includes('contact') || q.includes('hire') || q.includes('linkedin')) return "Connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect or use the contact form!";
+            if (q.includes('education') || q.includes('degree')) return "Milan holds a Bachelor's degree in Information Technology from KIST College.";
+            return "Milan Wosti is an IT Support Engineer at Palo Alto Networks, originally from Nepal. What would you like to know about him?";
         }
         
-        // Height/size questions
-        if (q.includes('how tall') || q.includes('how big') || q.includes('how high')) {
-            if (q.includes('eiffel')) return "The Eiffel Tower is 330 meters (1,083 feet) tall, including its antenna. It was the world's tallest structure when completed in 1889.";
-            if (q.includes('statue of liberty')) return "The Statue of Liberty is 93 meters (305 feet) from ground to torch tip. The statue itself is 46 meters (151 feet) tall.";
-            if (q.includes('burj khalifa')) return "Burj Khalifa in Dubai is 828 meters (2,717 feet) tall, making it the world's tallest building since 2010.";
-            if (q.includes('great wall')) return "The Great Wall of China is approximately 21,196 kilometers (13,171 miles) long, built over many centuries.";
+        // Mountains
+        if (q.includes('everest') || (q.includes('tallest') && q.includes('mountain')) || (q.includes('highest') && q.includes('mountain')) || (q.includes('big') && q.includes('everest'))) {
+            return "Mount Everest is 8,848.86 meters (29,031.7 feet) tall, making it Earth's highest mountain above sea level. It's located in the Himalayas on the border between Nepal and Tibet.";
         }
+        if (q.includes('k2')) return "K2 is 8,611 meters (28,251 feet) tall, the second-highest mountain on Earth, located on the China-Pakistan border.";
         
-        // Capitals
-        if (q.includes('capital of') || q.includes('capital city')) {
-            const capitals = {
-                'france': 'Paris', 'germany': 'Berlin', 'japan': 'Tokyo', 'china': 'Beijing',
-                'india': 'New Delhi', 'nepal': 'Kathmandu', 'usa': 'Washington D.C.', 'america': 'Washington D.C.',
-                'uk': 'London', 'england': 'London', 'italy': 'Rome', 'spain': 'Madrid',
-                'australia': 'Canberra', 'canada': 'Ottawa', 'brazil': 'Brasília', 'russia': 'Moscow',
-                'mexico': 'Mexico City', 'south korea': 'Seoul', 'north korea': 'Pyongyang'
-            };
+        // Famous landmarks
+        if (q.includes('eiffel')) return "The Eiffel Tower is 330 meters (1,083 feet) tall. Built in 1889 in Paris, France, it was the world's tallest structure for 41 years.";
+        if (q.includes('statue of liberty')) return "The Statue of Liberty is 93 meters (305 feet) from ground to torch. It was a gift from France to the USA in 1886.";
+        if (q.includes('burj khalifa')) return "Burj Khalifa in Dubai is 828 meters (2,717 feet) tall with 163 floors - the world's tallest building since 2010.";
+        if (q.includes('great wall')) return "The Great Wall of China is approximately 21,196 km (13,171 miles) long, built over many centuries.";
+        if (q.includes('taj mahal')) return "The Taj Mahal is a white marble mausoleum in Agra, India, built 1632-1653 by Emperor Shah Jahan for his wife.";
+        if (q.includes('pyramid') || q.includes('giza')) return "The Great Pyramid of Giza is 146.6 meters (481 feet) tall, built around 2560 BCE in Egypt.";
+        
+        // Capitals - expanded
+        const capitals = {
+            'france': 'Paris', 'germany': 'Berlin', 'japan': 'Tokyo', 'china': 'Beijing', 'india': 'New Delhi',
+            'nepal': 'Kathmandu', 'usa': 'Washington D.C.', 'america': 'Washington D.C.', 'united states': 'Washington D.C.',
+            'uk': 'London', 'england': 'London', 'italy': 'Rome', 'spain': 'Madrid', 'australia': 'Canberra',
+            'canada': 'Ottawa', 'brazil': 'Brasília', 'russia': 'Moscow', 'mexico': 'Mexico City',
+            'south korea': 'Seoul', 'north korea': 'Pyongyang', 'egypt': 'Cairo', 'turkey': 'Ankara',
+            'greece': 'Athens', 'thailand': 'Bangkok', 'vietnam': 'Hanoi', 'indonesia': 'Jakarta',
+            'pakistan': 'Islamabad', 'argentina': 'Buenos Aires', 'south africa': 'Pretoria',
+            'netherlands': 'Amsterdam', 'belgium': 'Brussels', 'switzerland': 'Bern', 'austria': 'Vienna',
+            'poland': 'Warsaw', 'sweden': 'Stockholm', 'norway': 'Oslo', 'denmark': 'Copenhagen'
+        };
+        if (q.includes('capital')) {
             for (const [country, capital] of Object.entries(capitals)) {
                 if (q.includes(country)) return `The capital of ${country.charAt(0).toUpperCase() + country.slice(1)} is ${capital}.`;
             }
@@ -670,26 +761,43 @@ For ALL other questions, answer accurately and helpfully. Keep responses concise
         
         // Population
         if (q.includes('population')) {
-            if (q.includes('world') || q.includes('earth')) return "The world population is approximately 8 billion people as of 2024.";
+            if (q.includes('world') || q.includes('earth')) return "The world population is approximately 8.1 billion people as of 2024.";
             if (q.includes('china')) return "China's population is approximately 1.4 billion people.";
-            if (q.includes('india')) return "India's population is approximately 1.4 billion people, recently surpassing China.";
-            if (q.includes('usa') || q.includes('america') || q.includes('united states')) return "The United States population is approximately 335 million people.";
+            if (q.includes('india')) return "India's population is approximately 1.44 billion, now the world's most populous country.";
+            if (q.includes('usa') || q.includes('america')) return "The United States population is approximately 335 million people.";
         }
         
-        // Science
-        if (q.includes('speed of light')) return "The speed of light is approximately 299,792,458 meters per second (about 186,282 miles per second) in a vacuum.";
-        if (q.includes('speed of sound')) return "The speed of sound is approximately 343 meters per second (767 mph) at sea level in dry air at 20°C.";
-        if (q.includes('sun') && (q.includes('far') || q.includes('distance'))) return "The Sun is about 150 million kilometers (93 million miles) from Earth, a distance known as 1 Astronomical Unit (AU).";
-        if (q.includes('moon') && (q.includes('far') || q.includes('distance'))) return "The Moon is about 384,400 kilometers (238,855 miles) from Earth on average.";
+        // Science facts
+        if (q.includes('speed of light')) return "The speed of light is 299,792,458 m/s (186,282 mi/s) in a vacuum - nothing can travel faster.";
+        if (q.includes('speed of sound')) return "The speed of sound is approximately 343 m/s (767 mph) at sea level in dry air at 20°C.";
+        if (q.includes('sun') && (q.includes('far') || q.includes('distance') || q.includes('away'))) return "The Sun is about 150 million km (93 million miles) from Earth - light takes 8 minutes to reach us.";
+        if (q.includes('moon') && (q.includes('far') || q.includes('distance') || q.includes('away'))) return "The Moon is about 384,400 km (238,855 miles) from Earth on average.";
+        if (q.includes('planets') || q.includes('solar system')) return "Our solar system has 8 planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.";
+        if (q.includes('biggest planet') || q.includes('largest planet')) return "Jupiter is the largest planet - over 1,300 Earths could fit inside it.";
+        if (q.includes('age') && (q.includes('earth') || q.includes('planet'))) return "Earth is approximately 4.54 billion years old.";
+        if (q.includes('age') && q.includes('universe')) return "The universe is approximately 13.8 billion years old.";
         
-        // Math
+        // Tech/Inventions
+        if (q.includes('invented') || q.includes('created') || q.includes('founded')) {
+            if (q.includes('google')) return "Google was founded by Larry Page and Sergey Brin in September 1998 at Stanford University.";
+            if (q.includes('facebook') || q.includes('meta')) return "Facebook (now Meta) was founded by Mark Zuckerberg in February 2004.";
+            if (q.includes('apple')) return "Apple was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne on April 1, 1976.";
+            if (q.includes('microsoft')) return "Microsoft was founded by Bill Gates and Paul Allen on April 4, 1975.";
+            if (q.includes('amazon')) return "Amazon was founded by Jeff Bezos on July 5, 1994.";
+            if (q.includes('tesla')) return "Tesla was founded in 2003 by Martin Eberhard and Marc Tarpenning. Elon Musk joined in 2004.";
+            if (q.includes('telephone')) return "The telephone was invented by Alexander Graham Bell in 1876.";
+            if (q.includes('light bulb') || q.includes('lightbulb')) return "The practical incandescent light bulb was invented by Thomas Edison in 1879.";
+            if (q.includes('internet')) return "The Internet evolved from ARPANET (1969). Tim Berners-Lee invented the World Wide Web in 1989.";
+        }
+        
+        // Math calculations
         const mathMatch = userMessage.match(/[\d+\-*/().^%\s]+/);
-        if (mathMatch && (q.includes('what is') || q.includes('calculate') || q.includes('='))) {
+        if (mathMatch && (q.includes('what is') || q.includes('calculate') || q.includes('=') || q.includes('solve') || /^\d/.test(q.trim()))) {
             try {
-                const expr = mathMatch[0].replace(/\^/g, '**').trim();
-                if (expr.length > 2) {
+                const expr = mathMatch[0].replace(/\^/g, '**').replace(/x/gi, '*').trim();
+                if (expr.length > 1 && /\d/.test(expr)) {
                     const result = Function('"use strict"; return (' + expr + ')')();
-                    if (!isNaN(result)) return `The answer is ${result.toLocaleString()}.`;
+                    if (!isNaN(result) && isFinite(result)) return `The answer is ${result.toLocaleString()}.`;
                 }
             } catch {}
         }
@@ -697,40 +805,15 @@ For ALL other questions, answer accurately and helpfully. Keep responses concise
         // Time/Date
         if (q.includes('time') || q.includes('date') || q.includes('today') || q.includes('what day')) {
             const now = new Date();
-            return `Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The current time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
-        }
-        
-        // Greetings
-        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)\b/)) {
-            return "Hello! I'm Ask Milan, an AI assistant. I can answer questions about almost anything - science, history, geography, math, technology, or about Milan Wosti himself. What would you like to know?";
-        }
-        
-        // Milan-specific
-        if (q.includes('milan') || q.includes('portfolio') || q.includes('website owner')) {
-            if (q.includes('work') || q.includes('job')) return "Milan Wosti works as an IT Support Engineer at Palo Alto Networks in California. He has 1.5 years of experience in enterprise IT support.";
-            if (q.includes('from') || q.includes('born') || q.includes('nepal')) return "Milan was born in Kathmandu, Nepal - home to Mount Everest and the birthplace of Gautam Buddha.";
-            if (q.includes('skill')) return "Milan is skilled in IT Support, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
-            if (q.includes('contact') || q.includes('hire')) return "You can reach Milan on LinkedIn at linkedin.com/in/milanwosticonnect or use the contact form on this website.";
-            return "Milan Wosti is an IT Support Engineer at Palo Alto Networks, originally from Nepal. Ask me anything specific about him!";
+            return `Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
         }
         
         // Thanks/Bye
         if (q.includes('thank')) return "You're welcome! Feel free to ask me anything else.";
-        if (q.includes('bye') || q.includes('goodbye')) return "Goodbye! Thanks for chatting with Ask Milan. Come back anytime!";
+        if (q.includes('bye') || q.includes('goodbye')) return "Goodbye! Thanks for chatting. Come back anytime!";
         
-        // Who/What is questions - try to give helpful response
-        if (q.startsWith('who is') || q.startsWith('who was')) {
-            const person = userMessage.replace(/who (is|was)/i, '').trim().replace('?', '');
-            return `${person} - I'd need an internet connection to look that up for you. Try asking me about well-known facts, math calculations, or about Milan Wosti!`;
-        }
-        
-        if (q.startsWith('what is') || q.startsWith('what are')) {
-            const topic = userMessage.replace(/what (is|are)/i, '').trim().replace('?', '');
-            return `Regarding "${topic}" - I'm currently working offline. I can answer questions about geography (capitals, mountains), basic science facts, math, dates, or Milan Wosti. Try one of those!`;
-        }
-        
-        // Default
-        return "I'm currently running in offline mode. I can still help with: math calculations, world capitals, famous landmarks, basic science facts, dates/times, and anything about Milan Wosti. What would you like to know?";
+        // Default - encourage Wikipedia-style questions
+        return "Try asking me about famous people, places, inventions, science facts, or math! For example: 'Who is Albert Einstein?' or 'What is the Eiffel Tower?' I use Wikipedia to find answers.";
     }
 
     async function handleSend() {

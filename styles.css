@@ -841,9 +841,90 @@ body {
 }
 
 /* Music Modal */
+.music-modal {
+    max-width: 450px;
+}
+
+.music-search {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.music-search input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    background: var(--gray-950);
+    border: 1px solid var(--gray-800);
+    border-radius: 6px;
+    color: var(--white);
+    outline: none;
+}
+
+.music-search input:focus {
+    border-color: var(--gray-600);
+}
+
+.music-search button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--white);
+    color: var(--black);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.music-search button:hover {
+    background: var(--gray-200);
+}
+
 .music-tracks {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--gray-800);
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.music-tracks-title {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.search-results:empty {
+    display: none;
+}
+
+.search-results .track-item {
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.search-results .track-item:last-child {
+    border-bottom: none;
+}
+
+.search-loading {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 0.875rem;
 }
 
 .track-item {

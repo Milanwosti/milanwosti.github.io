@@ -300,8 +300,12 @@
                 <h3>Music Player</h3>
                 <button class="modal-close" id="music-close">×</button>
             </div>
-            <div class="music-tracks">
-                <div class="track-item" data-video="yDSK91mUNLU">
+            <div class="music-search">
+                <input type="text" id="music-search-input" placeholder="Search any song...">
+                <button id="music-search-btn">Search</button>
+            </div>
+            <div class="music-tracks" id="music-tracks">
+                <div class="track-item" data-video="mk48xRzuNvA">
                     <span class="track-name">Hall of Fame - The Script</span>
                     <button class="play-btn">▶</button>
                 </div>
@@ -314,8 +318,9 @@
                     <button class="play-btn">▶</button>
                 </div>
             </div>
+            <div class="search-results" id="search-results"></div>
             <div class="youtube-player" id="youtube-player">
-                <p class="player-placeholder">Select a track to play</p>
+                <p class="player-placeholder">Select a track or search for any song</p>
             </div>
         </div>
     </div>
