@@ -310,6 +310,7 @@ body {
 /* Site Search */
 .site-search {
     position: relative;
+    margin-left: 1.5rem;
 }
 
 .site-search input {
