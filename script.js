@@ -534,6 +534,7 @@ function initSidebar() {
 // Music Player with YouTube Search
 function initMusicPlayer() {
     const btn = document.getElementById('music-btn');
+    const btnMobile = document.getElementById('music-btn-mobile');
     const modal = document.getElementById('music-modal');
     const closeBtn = document.getElementById('music-close');
     const tracksContainer = document.getElementById('music-tracks');
@@ -545,6 +546,7 @@ function initMusicPlayer() {
     const musicControl = document.getElementById('music-control');
     const musicControlIcon = document.getElementById('music-control-icon');
     const nowPlaying = document.getElementById('now-playing');
+    const navLinks = document.getElementById('nav-links');
 
     let isPlaying = false;
     let currentVideoId = null;
@@ -585,7 +587,14 @@ function initMusicPlayer() {
         'cupid': 'Qc7_zRjH808', 'seven': 'UUSbUBYqU_4', 'super shy': 'ArmDp-zijuc'
     };
 
-    btn.addEventListener('click', () => modal.classList.add('active'));
+    function openMusicModal() {
+        modal.classList.add('active');
+        // Close mobile nav if open
+        if (navLinks) navLinks.classList.remove('active');
+    }
+
+    btn.addEventListener('click', openMusicModal);
+    if (btnMobile) btnMobile.addEventListener('click', openMusicModal);
     closeBtn.addEventListener('click', () => modal.classList.remove('active'));
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('active');
@@ -752,6 +761,7 @@ function initMusicPlayer() {
 // Sudoku Game with Timer and Leaderboard
 function initSudoku() {
     const btn = document.getElementById('sudoku-btn');
+    const btnMobile = document.getElementById('sudoku-btn-mobile');
     const modal = document.getElementById('sudoku-modal');
     const closeBtn = document.getElementById('sudoku-close');
     const nameEntry = document.getElementById('sudoku-name-entry');
@@ -766,6 +776,7 @@ function initSudoku() {
     const newGameBtn = document.getElementById('new-game');
     const levelBtns = document.querySelectorAll('.level-btn');
     const leaderboardList = document.getElementById('leaderboard-list');
+    const navLinks = document.getElementById('nav-links');
 
     let board = [];
     let solution = [];
@@ -945,10 +956,15 @@ function initSudoku() {
         });
     });
 
-    btn.addEventListener('click', () => {
+    function openSudokuModal() {
         modal.classList.add('active');
         updateLeaderboard();
-    });
+        // Close mobile nav if open
+        if (navLinks) navLinks.classList.remove('active');
+    }
+
+    btn.addEventListener('click', openSudokuModal);
+    if (btnMobile) btnMobile.addEventListener('click', openSudokuModal);
 
     closeBtn.addEventListener('click', () => {
         modal.classList.remove('active');
