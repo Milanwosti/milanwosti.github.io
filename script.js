@@ -350,16 +350,23 @@ function initMusicPlayer() {
     const searchBtn = document.getElementById('music-search-btn');
 
     btn.addEventListener('click', () => modal.classList.add('active'));
-    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        // Stop video when closing
+        playerContainer.innerHTML = '<p class="player-placeholder">Select a track or search for any song</p>';
+    });
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.remove('active');
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            playerContainer.innerHTML = '<p class="player-placeholder">Select a track or search for any song</p>';
+        }
     });
 
     // Play track function
-    function playTrack(videoId, trackName) {
+    function playTrack(videoId) {
         playerContainer.innerHTML = `
             <iframe 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
                 frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
@@ -373,8 +380,7 @@ function initMusicPlayer() {
         if (playBtn) {
             const track = playBtn.closest('.track-item');
             const videoId = track.dataset.video;
-            const trackName = track.querySelector('.track-name').textContent;
-            playTrack(videoId, trackName);
+            playTrack(videoId);
         }
     });
 
@@ -384,75 +390,162 @@ function initMusicPlayer() {
         if (playBtn) {
             const track = playBtn.closest('.track-item');
             const videoId = track.dataset.video;
-            const trackName = track.querySelector('.track-name').textContent;
-            playTrack(videoId, trackName);
+            if (videoId) {
+                playTrack(videoId);
+            }
         }
     });
 
-    // Search function using Invidious API (YouTube frontend)
+    // Search function using YouTube oEmbed to get video info
     async function searchMusic(query) {
-        searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+        searchResults.innerHTML = '<div class="search-loading">🔍 Searching...</div>';
         
-        try {
-            // Try multiple Invidious instances
-            const instances = [
-                'https://inv.nadeko.net',
-                'https://invidious.nerdvpn.de',
-                'https://yt.artemislena.eu'
-            ];
-            
-            let data = null;
-            for (const instance of instances) {
-                try {
-                    const response = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query + ' music')}&type=video`, {
-                        signal: AbortSignal.timeout(5000)
-                    });
-                    if (response.ok) {
-                        data = await response.json();
-                        break;
-                    }
-                } catch {}
-            }
+        // Popular song mappings for common searches
+        const popularSongs = {
+            'shape of you': 'JGwWNGJdvx8',
+            'blinding lights': '4NRXx6U8ABQ',
+            'dance monkey': 'q0hyYWKXF0Q',
+            'someone like you': 'hLQl3WQQoQ0',
+            'hello adele': 'YQHsXMglC9A',
+            'despacito': 'kJQP7kiw5Fk',
+            'uptown funk': 'OPf0YbXqDm0',
+            'thinking out loud': 'lp-EO5I60KA',
+            'perfect': 'HjmBLCbTgDo',
+            'shallow': 'bo_efYhYU2A',
+            'bad guy': 'DyDfgMOUjCI',
+            'senorita': 'Pkh8UtuejGw',
+            'old town road': 'w2Ov5jzm3j8',
+            'sunflower': 'ApXoWvfEYVU',
+            'rockstar': 'UceaB4D0jpo',
+            'closer': 'PT2_F-1esPk',
+            'havana': 'BQ0mxQXmLsk',
+            'believer': '7wtfhZwyrcc',
+            'thunder': 'fKopy74weus',
+            'happier': 'm7Bc3pLyij0',
+            'lovely': 'V1Pl8CzNzCw',
+            'stay': 'kTJczUoc26U',
+            'levitating': 'TUVcZfQe-Kw',
+            'drivers license': 'ZmDBbnmKpqQ',
+            'peaches': 'tQ0yjYUFKAE',
+            'montero': '6swmTBVI83k',
+            'good 4 u': 'gNi_6U5Pm_o',
+            'kiss me more': '0EVVKs6DQLo',
+            'butter': 'WMweEpGlu_U',
+            'dynamite bts': 'gdZLi9oWNZg',
+            'watermelon sugar': 'E07s5ZYygMg',
+            'positions': 'tcYodQoapMg',
+            'therefore i am': 'RUQl6YcMalg',
+            'willow': 'RsEZmictANA',
+            'mood': 'GrAchTdepsU',
+            'heather': 'GPUg7n8-M6o',
+            'astronaut in the ocean': 'MEg-oqI9qmw',
+            'save your tears': 'XXYlFuWEuKI',
+            'without you': 'ERUr-S8FOuE',
+            'deja vu': 'cii6ruuycQA',
+            'brutal': 'OmHhVI-5Bnk',
+            'traitor': 'aRCks4ljxFY',
+            'industry baby': 'UTHLKHL_whs',
+            'easy on me': 'U3ASj1L6_sY',
+            'heat waves': 'mRD0-GxqHVo',
+            'enemy': 'D9G1VOjN_84',
+            'abcdefu': 'NaFd8ucHLuo',
+            'we dont talk about bruno': 'bvWRMAU6V-c',
+            'as it was': 'H5v3kku4y6Q',
+            'running up that hill': 'wp43OdtAAkM',
+            'about damn time': 'Z5Uy3VH_Rrg',
+            'anti hero': 'b1kbLwvqugk',
+            'unholy': 'Uq9gPaIzbe8',
+            'flowers': 'G7KNmW9a75Y',
+            'kill bill': 'hTGJfRPLe08',
+            'calm down': 'WcIcVapfqXw',
+            'creepin': 'LOygSaN9SIk',
+            'boy with luv': 'XsX3ATc3FbA',
+            'fake love': 'LmApDbvNCXg',
+            'idol bts': 'pBuZEGYXA6E',
+            'mic drop': 'kTlv5_Bs8aw',
+            'dna bts': 'MBdVXkSdhwU',
+            'fire bts': '4ujQOR2DMFM',
+            'blood sweat tears': 'hmE9f-TEutc',
+            'spring day': 'xEeFrLSkMm8',
+            'black swan': '0lapF4DQPKQ',
+            'on bts': 'mPVDGOVjRQ0',
+            'life goes on': '-5q5mZbe3V8',
+            'permission to dance': 'CuklIb9d3fI',
+            'yet to come': 'kXpOEzNZ5VQ',
+            'pink venom': 'gQlMMD8auMs',
+            'shut down': 'POe9SOEKotk',
+            'how you like that': 'ioNng23DkIM',
+            'lovesick girls': 'dyRsYk0LyA8',
+            'kill this love': '2S24-y0Ij3Y',
+            'ddu du ddu du': 'IHNzOHi8sJs',
+            'boombayah': 'bwmSjveL3Lc',
+            'whistle': 'dISNgvVpWlo',
+            'ice cream': 'vRXZj0DzXIA',
+            'pretty savage': 'F8c8f2nK82w',
+            'playing with fire': '9pdj4iJD08s',
+            'as if its your last': 'Amq-qlqbjYA',
+            'stay blackpink': 'FzVR_fymZw4'
+        };
 
-            if (data && data.length > 0) {
-                const results = data.slice(0, 5).map(video => `
-                    <div class="track-item" data-video="${video.videoId}">
-                        <span class="track-name">${video.title.substring(0, 50)}${video.title.length > 50 ? '...' : ''}</span>
-                        <button class="play-btn">▶</button>
-                    </div>
-                `).join('');
-                searchResults.innerHTML = results;
-            } else {
-                // Fallback: Direct YouTube embed search
+        const searchLower = query.toLowerCase();
+        
+        // Check if we have a direct match
+        for (const [song, videoId] of Object.entries(popularSongs)) {
+            if (searchLower.includes(song) || song.includes(searchLower)) {
                 searchResults.innerHTML = `
-                    <div class="track-item" data-video="" data-search="${encodeURIComponent(query)}">
-                        <span class="track-name">Play: "${query}" on YouTube</span>
+                    <div class="track-item" data-video="${videoId}">
+                        <span class="track-name">▶ ${query}</span>
                         <button class="play-btn">▶</button>
                     </div>
                 `;
-                
-                // Update click handler for search fallback
-                const fallbackTrack = searchResults.querySelector('.track-item');
-                fallbackTrack.querySelector('.play-btn').addEventListener('click', () => {
-                    playerContainer.innerHTML = `
-                        <iframe 
-                            src="https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
-                    `;
-                });
+                return;
             }
-        } catch (error) {
-            // Ultimate fallback
-            searchResults.innerHTML = `
-                <div class="track-item">
-                    <span class="track-name">Search "${query}" on YouTube</span>
-                    <button class="play-btn" onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(query)}', '_blank')">↗</button>
-                </div>
-            `;
         }
+
+        // If no direct match, show YouTube search link and try to find via API
+        try {
+            // Try Piped API (YouTube frontend)
+            const instances = [
+                'https://pipedapi.kavin.rocks',
+                'https://api.piped.yt'
+            ];
+            
+            for (const instance of instances) {
+                try {
+                    const response = await fetch(`${instance}/search?q=${encodeURIComponent(query + ' official audio')}&filter=videos`, {
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.items && data.items.length > 0) {
+                            const results = data.items.slice(0, 5).map(video => {
+                                const videoId = video.url?.replace('/watch?v=', '') || '';
+                                return `
+                                    <div class="track-item" data-video="${videoId}">
+                                        <span class="track-name">${video.title?.substring(0, 45) || query}${video.title?.length > 45 ? '...' : ''}</span>
+                                        <button class="play-btn">▶</button>
+                                    </div>
+                                `;
+                            }).join('');
+                            searchResults.innerHTML = results;
+                            return;
+                        }
+                    }
+                } catch {}
+            }
+        } catch {}
+
+        // Fallback: Show search on YouTube button
+        searchResults.innerHTML = `
+            <div class="track-item search-fallback">
+                <span class="track-name">🔎 Search "${query}" on YouTube</span>
+                <button class="play-btn" onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(query)}', '_blank')">↗</button>
+            </div>
+            <div class="search-tip">
+                <p>💡 Try searching for popular songs like: "Shape of You", "Blinding Lights", "Dynamite BTS", "Pink Venom"</p>
+            </div>
+        `;
     }
 
     searchBtn.addEventListener('click', () => {

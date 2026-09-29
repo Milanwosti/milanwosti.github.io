@@ -986,6 +986,23 @@ body {
     font-size: 0.875rem;
 }
 
+.search-tip {
+    padding: 0.75rem 1rem;
+    background: var(--gray-950);
+    border-top: 1px solid var(--gray-800);
+}
+
+.search-tip p {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.search-fallback .track-name {
+    color: var(--gray-300);
+}
+
 .track-item {
     display: flex;
     justify-content: space-between;
