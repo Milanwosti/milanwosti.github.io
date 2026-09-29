@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initStatusBar();
     initQuoteOfDay();
+    initITFacts();
     initNavigation();
     initFloatingTools();
     initLiveData();
@@ -31,7 +32,7 @@ function initStatusBar() {
         const now = new Date();
         const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const date = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        datetime.textContent = `📅 ${date} • ⏰ ${time}`;
+        datetime.textContent = `${date} • ${time}`;
     }
 
     async function updateWeather() {
@@ -104,6 +105,73 @@ function initQuoteOfDay() {
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const quoteIndex = dayOfYear % quotes.length;
     brandQuote.textContent = `💡 "${quotes[quoteIndex]}"`;
+}
+
+// IT Facts - Changes every 5 seconds
+function initITFacts() {
+    const factText = document.getElementById('fact-text');
+    
+    const facts = [
+        "The first computer virus was created in 1983 and was called 'Elk Cloner'.",
+        "Google processes over 8.5 billion searches per day.",
+        "The first 1GB hard drive weighed 550 pounds and cost $40,000 in 1980.",
+        "About 90% of the world's data was created in the last two years.",
+        "The average person spends 6 hours and 58 minutes online daily.",
+        "There are approximately 5.3 billion internet users worldwide.",
+        "The first website ever created is still online at info.cern.ch.",
+        "Email existed before the World Wide Web was invented.",
+        "The QWERTY keyboard was designed to slow down typing to prevent jamming.",
+        "The first computer mouse was made of wood in 1964.",
+        "WiFi doesn't stand for anything - it's just a marketing term.",
+        "The first computer programmer was Ada Lovelace in the 1840s.",
+        "Amazon Web Services (AWS) powers about 33% of the internet.",
+        "The cloud stores about 100 zettabytes of data globally.",
+        "Cybercrime costs the world $10.5 trillion annually by 2025.",
+        "The average cost of a data breach is $4.45 million.",
+        "95% of cybersecurity breaches are caused by human error.",
+        "There are over 2,200 cyberattacks per day worldwide.",
+        "The first domain ever registered was Symbolics.com in 1985.",
+        "Linux powers 96.3% of the world's top 1 million servers.",
+        "Over 500 hours of video are uploaded to YouTube every minute.",
+        "The first iPhone was released on June 29, 2007.",
+        "Microsoft was founded in a garage in Albuquerque, New Mexico.",
+        "The term 'bug' came from an actual moth found in a computer in 1947.",
+        "The average smartphone has more computing power than NASA in 1969.",
+        "There are over 27 million software developers worldwide.",
+        "Python is named after Monty Python, not the snake.",
+        "JavaScript was created in just 10 days.",
+        "The first webcam was used to monitor a coffee pot at Cambridge.",
+        "Over 333 billion emails are sent and received daily.",
+        "The @ symbol was chosen for email because it was rarely used.",
+        "Active Directory was first released with Windows 2000.",
+        "Okta processes over 17 billion authentications per month.",
+        "Zero Trust security was coined by Forrester Research in 2010.",
+        "Multi-factor authentication blocks 99.9% of account attacks.",
+        "The average enterprise uses 1,295 cloud services.",
+        "Kubernetes was originally developed by Google.",
+        "Docker containers share the host OS kernel for efficiency.",
+        "DevOps practices can reduce deployment failures by 60%.",
+        "The first ransomware attack occurred in 1989 via floppy disk."
+    ];
+    
+    let currentIndex = Math.floor(Math.random() * facts.length);
+    
+    function showFact() {
+        factText.style.animation = 'none';
+        factText.offsetHeight; // Trigger reflow
+        factText.style.animation = 'fadeIn 0.5s ease';
+        factText.textContent = facts[currentIndex];
+        currentIndex = (currentIndex + 1) % facts.length;
+    }
+    
+    // Shuffle facts for variety
+    for (let i = facts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [facts[i], facts[j]] = [facts[j], facts[i]];
+    }
+    
+    showFact();
+    setInterval(showFact, 5000);
 }
 
 // Navigation
