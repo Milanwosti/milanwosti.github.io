@@ -548,6 +548,8 @@ function initMusicPlayer() {
 
     let isPlaying = false;
     let currentVideoId = null;
+    let ytPlayer = null;
+    let ytPlayerReady = false;
 
     // Song database with YouTube IDs
     const songs = {
@@ -589,15 +591,64 @@ function initMusicPlayer() {
         if (e.target === modal) modal.classList.remove('active');
     });
 
+    // Initialize YouTube Player
+    function initYTPlayer(videoId) {
+        // Create a div for the player if it doesn't exist
+        persistentPlayer.innerHTML = '<div id="yt-player-div"></div>';
+        
+        ytPlayer = new YT.Player('yt-player-div', {
+            height: '0',
+            width: '0',
+            videoId: videoId,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'rel': 0,
+                'enablejsapi': 1
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        ytPlayerReady = true;
+        event.target.playVideo();
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.PLAYING) {
+            isPlaying = true;
+            musicControlIcon.textContent = '⏸️';
+        } else if (event.data === YT.PlayerState.PAUSED) {
+            isPlaying = false;
+            musicControlIcon.textContent = '▶️';
+        } else if (event.data === YT.PlayerState.ENDED) {
+            isPlaying = false;
+            musicControlIcon.textContent = '▶️';
+        }
+    }
+
     function playTrack(videoId) {
         currentVideoId = videoId;
         isPlaying = true;
         
-        // Show in modal player
+        // Show in modal player (visual only)
         playerContainer.innerHTML = `<iframe id="modal-player" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
         
-        // Also set up persistent player (hidden)
-        persistentPlayer.innerHTML = `<iframe id="bg-player" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        // Initialize or load new video in YT Player
+        if (ytPlayer && ytPlayerReady) {
+            ytPlayer.loadVideoById(videoId);
+        } else if (typeof YT !== 'undefined' && YT.Player) {
+            initYTPlayer(videoId);
+        } else {
+            // Fallback: wait for API to load
+            window.onYouTubeIframeAPIReady = function() {
+                initYTPlayer(videoId);
+            };
+        }
         
         // Show control button and now playing
         musicControl.style.display = 'block';
@@ -606,27 +657,17 @@ function initMusicPlayer() {
     }
 
     function togglePlayPause() {
-        const bgPlayer = document.getElementById('bg-player');
-        const modalPlayer = document.getElementById('modal-player');
+        if (!ytPlayer || !ytPlayerReady) {
+            // Fallback for when YT player isn't ready
+            return;
+        }
         
         if (isPlaying) {
-            // Pause - reload with autoplay=0
-            if (bgPlayer) {
-                persistentPlayer.innerHTML = `<iframe id="bg-player" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            }
-            if (modalPlayer) {
-                playerContainer.innerHTML = `<iframe id="modal-player" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            }
+            ytPlayer.pauseVideo();
             musicControlIcon.textContent = '▶️';
             isPlaying = false;
         } else {
-            // Play - reload with autoplay=1
-            if (currentVideoId) {
-                persistentPlayer.innerHTML = `<iframe id="bg-player" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                if (modal.classList.contains('active')) {
-                    playerContainer.innerHTML = `<iframe id="modal-player" src="https://www.youtube.com/embed/${currentVideoId}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                }
-            }
+            ytPlayer.playVideo();
             musicControlIcon.textContent = '⏸️';
             isPlaying = true;
         }
