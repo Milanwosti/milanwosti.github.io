@@ -349,10 +349,43 @@ function initMusicPlayer() {
     const searchInput = document.getElementById('music-search-input');
     const searchBtn = document.getElementById('music-search-btn');
 
+    // Song database with YouTube IDs
+    const songs = {
+        'hall of fame': 'mk48xRzuNvA', 'see you again': 'RgKAFK5djSk', 'die with a smile': 'kPa7bsKwL-c',
+        'shape of you': 'JGwWNGJdvx8', 'perfect': 'HjmBLCbTgDo', 'thinking out loud': 'lp-EO5I60KA',
+        'blinding lights': '4NRXx6U8ABQ', 'starboy': 'dqRZDebPIGs', 'save your tears': 'XXYlFuWEuKI',
+        'uptown funk': 'OPf0YbXqDm0', 'just the way you are': 'LjhCEhWiKXk', '24k magic': 'UqyT8IEBkvY',
+        'hello': 'YQHsXMglC9A', 'someone like you': 'hLQl3WQQoQ0', 'rolling in the deep': 'rYEDA3JcQqw',
+        'easy on me': 'U3ASj1L6_sY', 'despacito': 'kJQP7kiw5Fk', 'dance monkey': 'q0hyYWKXF0Q',
+        'bad guy': 'DyDfgMOUjCI', 'lovely': 'V1Pl8CzNzCw', 'ocean eyes': 'viimfQi_pUw',
+        'levitating': 'TUVcZfQe-Kw', 'dont start now': 'oygrmJFKYZY', 'new rules': 'k2qgadSvNyU',
+        'dynamite': 'gdZLi9oWNZg', 'butter': 'WMweEpGlu_U', 'boy with luv': 'XsX3ATc3FbA',
+        'pink venom': 'gQlMMD8auMs', 'how you like that': 'ioNng23DkIM', 'kill this love': '2S24-y0Ij3Y',
+        'stay': 'kTJczUoc26U', 'peaches': 'tQ0yjYUFKAE', 'drivers license': 'ZmDBbnmKpqQ',
+        'good 4 u': 'gNi_6U5Pm_o', 'anti hero': 'b1kbLwvqugk', 'shake it off': 'nfWlot6h_JM',
+        'believer': '7wtfhZwyrcc', 'thunder': 'fKopy74weus', 'radioactive': 'ktvTqknDobU',
+        'closer': 'PT2_F-1esPk', 'attention': 'nfs8NYg7yQM', 'senorita': 'Pkh8UtuejGw',
+        'havana': 'BQ0mxQXmLsk', 'circles': 'wXhTHyIgQ_U', 'sunflower': 'ApXoWvfEYVU',
+        'heat waves': 'mRD0-GxqHVo', 'as it was': 'H5v3kku4y6Q', 'watermelon sugar': 'E07s5ZYygMg',
+        'flowers': 'G7KNmW9a75Y', 'unholy': 'Uq9gPaIzbe8', 'calm down': 'WcIcVapfqXw',
+        'kill bill': 'hTGJfRPLe08', 'vampire': 'RlPNh_PBZb4', 'cruel summer': 'ic8j13piAhQ',
+        'faded': '60ItHLz5WEA', 'alone': '1-xGerv5FOk', 'let her go': 'RBumgq5yVrA',
+        'photograph': 'nSDgHBxUbVQ', 'happier': 'm7Bc3pLyij0', 'memories': 'SlPhMPnQ58k',
+        'sugar': '09R8_2nJtjg', 'girls like you': 'aJOTlE1K90k', 'payphone': 'KRaWnd3LJfs',
+        'yellow': 'yKNxeF4KMsY', 'fix you': 'k4V3Mo61fJM', 'viva la vida': 'dvgZkm1xWPE',
+        'counting stars': 'hT_nvWreIhg', 'apologize': 'ZSM3w1v-A_Y', 'grenade': 'SR6iYWJxHqs',
+        'locked out of heaven': 'e-fA-gBCkj0', 'treasure': 'nPvuNsRccVw', 'lazy song': 'fLexgOxsZu0',
+        'enemy': 'D9G1VOjN_84', 'natural': '0I647GU3Jsc', 'bones': 'TO-_3tck2tg',
+        'dna': 'MBdVXkSdhwU', 'fake love': 'LmApDbvNCXg', 'spring day': 'xEeFrLSkMm8',
+        'ddu du ddu du': 'IHNzOHi8sJs', 'boombayah': 'bwmSjveL3Lc', 'lovesick girls': 'dyRsYk0LyA8',
+        'mood': 'GrAchTdepsU', 'montero': '6swmTBVI83k', 'industry baby': 'UTHLKHL_whs',
+        'abcdefu': 'NaFd8ucHLuo', 'about damn time': 'Z5Uy3VH_Rrg', 'running up that hill': 'wp43OdtAAkM',
+        'cupid': 'Qc7_zRjH808', 'seven': 'UUSbUBYqU_4', 'super shy': 'ArmDp-zijuc'
+    };
+
     btn.addEventListener('click', () => modal.classList.add('active'));
     closeBtn.addEventListener('click', () => {
         modal.classList.remove('active');
-        // Stop video when closing
         playerContainer.innerHTML = '<p class="player-placeholder">Select a track or search for any song</p>';
     });
     modal.addEventListener('click', (e) => {
@@ -362,203 +395,66 @@ function initMusicPlayer() {
         }
     });
 
-    // Play track function
     function playTrack(videoId) {
-        playerContainer.innerHTML = `
-            <iframe 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-        `;
+        playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     }
 
-    // Handle default tracks
     tracksContainer.addEventListener('click', (e) => {
         const playBtn = e.target.closest('.play-btn');
         if (playBtn) {
             const track = playBtn.closest('.track-item');
-            const videoId = track.dataset.video;
-            playTrack(videoId);
+            playTrack(track.dataset.video);
         }
     });
 
-    // Handle search results
     searchResults.addEventListener('click', (e) => {
         const playBtn = e.target.closest('.play-btn');
         if (playBtn) {
             const track = playBtn.closest('.track-item');
-            const videoId = track.dataset.video;
-            if (videoId) {
-                playTrack(videoId);
-            }
+            if (track.dataset.video) playTrack(track.dataset.video);
         }
     });
 
-    // Search function using YouTube oEmbed to get video info
-    async function searchMusic(query) {
-        searchResults.innerHTML = '<div class="search-loading">🔍 Searching...</div>';
+    function searchMusic(query) {
+        const q = query.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+        const matches = [];
         
-        // Popular song mappings for common searches
-        const popularSongs = {
-            'shape of you': 'JGwWNGJdvx8',
-            'blinding lights': '4NRXx6U8ABQ',
-            'dance monkey': 'q0hyYWKXF0Q',
-            'someone like you': 'hLQl3WQQoQ0',
-            'hello adele': 'YQHsXMglC9A',
-            'despacito': 'kJQP7kiw5Fk',
-            'uptown funk': 'OPf0YbXqDm0',
-            'thinking out loud': 'lp-EO5I60KA',
-            'perfect': 'HjmBLCbTgDo',
-            'shallow': 'bo_efYhYU2A',
-            'bad guy': 'DyDfgMOUjCI',
-            'senorita': 'Pkh8UtuejGw',
-            'old town road': 'w2Ov5jzm3j8',
-            'sunflower': 'ApXoWvfEYVU',
-            'rockstar': 'UceaB4D0jpo',
-            'closer': 'PT2_F-1esPk',
-            'havana': 'BQ0mxQXmLsk',
-            'believer': '7wtfhZwyrcc',
-            'thunder': 'fKopy74weus',
-            'happier': 'm7Bc3pLyij0',
-            'lovely': 'V1Pl8CzNzCw',
-            'stay': 'kTJczUoc26U',
-            'levitating': 'TUVcZfQe-Kw',
-            'drivers license': 'ZmDBbnmKpqQ',
-            'peaches': 'tQ0yjYUFKAE',
-            'montero': '6swmTBVI83k',
-            'good 4 u': 'gNi_6U5Pm_o',
-            'kiss me more': '0EVVKs6DQLo',
-            'butter': 'WMweEpGlu_U',
-            'dynamite bts': 'gdZLi9oWNZg',
-            'watermelon sugar': 'E07s5ZYygMg',
-            'positions': 'tcYodQoapMg',
-            'therefore i am': 'RUQl6YcMalg',
-            'willow': 'RsEZmictANA',
-            'mood': 'GrAchTdepsU',
-            'heather': 'GPUg7n8-M6o',
-            'astronaut in the ocean': 'MEg-oqI9qmw',
-            'save your tears': 'XXYlFuWEuKI',
-            'without you': 'ERUr-S8FOuE',
-            'deja vu': 'cii6ruuycQA',
-            'brutal': 'OmHhVI-5Bnk',
-            'traitor': 'aRCks4ljxFY',
-            'industry baby': 'UTHLKHL_whs',
-            'easy on me': 'U3ASj1L6_sY',
-            'heat waves': 'mRD0-GxqHVo',
-            'enemy': 'D9G1VOjN_84',
-            'abcdefu': 'NaFd8ucHLuo',
-            'we dont talk about bruno': 'bvWRMAU6V-c',
-            'as it was': 'H5v3kku4y6Q',
-            'running up that hill': 'wp43OdtAAkM',
-            'about damn time': 'Z5Uy3VH_Rrg',
-            'anti hero': 'b1kbLwvqugk',
-            'unholy': 'Uq9gPaIzbe8',
-            'flowers': 'G7KNmW9a75Y',
-            'kill bill': 'hTGJfRPLe08',
-            'calm down': 'WcIcVapfqXw',
-            'creepin': 'LOygSaN9SIk',
-            'boy with luv': 'XsX3ATc3FbA',
-            'fake love': 'LmApDbvNCXg',
-            'idol bts': 'pBuZEGYXA6E',
-            'mic drop': 'kTlv5_Bs8aw',
-            'dna bts': 'MBdVXkSdhwU',
-            'fire bts': '4ujQOR2DMFM',
-            'blood sweat tears': 'hmE9f-TEutc',
-            'spring day': 'xEeFrLSkMm8',
-            'black swan': '0lapF4DQPKQ',
-            'on bts': 'mPVDGOVjRQ0',
-            'life goes on': '-5q5mZbe3V8',
-            'permission to dance': 'CuklIb9d3fI',
-            'yet to come': 'kXpOEzNZ5VQ',
-            'pink venom': 'gQlMMD8auMs',
-            'shut down': 'POe9SOEKotk',
-            'how you like that': 'ioNng23DkIM',
-            'lovesick girls': 'dyRsYk0LyA8',
-            'kill this love': '2S24-y0Ij3Y',
-            'ddu du ddu du': 'IHNzOHi8sJs',
-            'boombayah': 'bwmSjveL3Lc',
-            'whistle': 'dISNgvVpWlo',
-            'ice cream': 'vRXZj0DzXIA',
-            'pretty savage': 'F8c8f2nK82w',
-            'playing with fire': '9pdj4iJD08s',
-            'as if its your last': 'Amq-qlqbjYA',
-            'stay blackpink': 'FzVR_fymZw4'
-        };
-
-        const searchLower = query.toLowerCase();
-        
-        // Check if we have a direct match
-        for (const [song, videoId] of Object.entries(popularSongs)) {
-            if (searchLower.includes(song) || song.includes(searchLower)) {
-                searchResults.innerHTML = `
-                    <div class="track-item" data-video="${videoId}">
-                        <span class="track-name">▶ ${query}</span>
-                        <button class="play-btn">▶</button>
-                    </div>
-                `;
-                return;
+        for (const [name, id] of Object.entries(songs)) {
+            if (name.includes(q) || q.includes(name) || q.split(' ').some(w => name.includes(w) && w.length > 2)) {
+                matches.push({ name, id });
             }
         }
 
-        // If no direct match, show YouTube search link and try to find via API
-        try {
-            // Try Piped API (YouTube frontend)
-            const instances = [
-                'https://pipedapi.kavin.rocks',
-                'https://api.piped.yt'
-            ];
-            
-            for (const instance of instances) {
-                try {
-                    const response = await fetch(`${instance}/search?q=${encodeURIComponent(query + ' official audio')}&filter=videos`, {
-                        signal: AbortSignal.timeout(5000)
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.items && data.items.length > 0) {
-                            const results = data.items.slice(0, 5).map(video => {
-                                const videoId = video.url?.replace('/watch?v=', '') || '';
-                                return `
-                                    <div class="track-item" data-video="${videoId}">
-                                        <span class="track-name">${video.title?.substring(0, 45) || query}${video.title?.length > 45 ? '...' : ''}</span>
-                                        <button class="play-btn">▶</button>
-                                    </div>
-                                `;
-                            }).join('');
-                            searchResults.innerHTML = results;
-                            return;
-                        }
-                    }
-                } catch {}
-            }
-        } catch {}
-
-        // Fallback: Show search on YouTube button
-        searchResults.innerHTML = `
-            <div class="track-item search-fallback">
-                <span class="track-name">🔎 Search "${query}" on YouTube</span>
-                <button class="play-btn" onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(query)}', '_blank')">↗</button>
-            </div>
-            <div class="search-tip">
-                <p>💡 Try searching for popular songs like: "Shape of You", "Blinding Lights", "Dynamite BTS", "Pink Venom"</p>
-            </div>
-        `;
+        if (matches.length > 0) {
+            searchResults.innerHTML = matches.slice(0, 6).map(m => 
+                `<div class="track-item" data-video="${m.id}"><span class="track-name">▶ ${m.name.replace(/\b\w/g, c => c.toUpperCase())}</span><button class="play-btn">▶</button></div>`
+            ).join('');
+        } else {
+            const suggestions = Object.entries(songs).sort(() => Math.random() - 0.5).slice(0, 6);
+            searchResults.innerHTML = `<div class="no-results">No match for "${query}". Try these:</div>` +
+                suggestions.map(([name, id]) => 
+                    `<div class="track-item" data-video="${id}"><span class="track-name">▶ ${name.replace(/\b\w/g, c => c.toUpperCase())}</span><button class="play-btn">▶</button></div>`
+                ).join('');
+        }
     }
 
-    searchBtn.addEventListener('click', () => {
-        const query = searchInput.value.trim();
-        if (query) searchMusic(query);
-    });
-
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const query = searchInput.value.trim();
-            if (query) searchMusic(query);
+    searchInput.addEventListener('focus', () => {
+        if (!searchInput.value) {
+            const suggestions = Object.entries(songs).sort(() => Math.random() - 0.5).slice(0, 6);
+            searchResults.innerHTML = `<div class="suggestions-title">🎵 Try these songs:</div>` +
+                suggestions.map(([name, id]) => 
+                    `<div class="track-item" data-video="${id}"><span class="track-name">▶ ${name.replace(/\b\w/g, c => c.toUpperCase())}</span><button class="play-btn">▶</button></div>`
+                ).join('');
         }
     });
+
+    searchInput.addEventListener('input', () => {
+        if (searchInput.value.length >= 2) searchMusic(searchInput.value);
+        else if (!searchInput.value) searchResults.innerHTML = '';
+    });
+
+    searchBtn.addEventListener('click', () => { if (searchInput.value.trim()) searchMusic(searchInput.value.trim()); });
+    searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && searchInput.value.trim()) searchMusic(searchInput.value.trim()); });
 }
 
 // Sudoku Game with Difficulty Levels

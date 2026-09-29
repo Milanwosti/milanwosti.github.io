@@ -980,6 +980,13 @@ body {
     color: var(--gray-300);
 }
 
+.suggestions-title, .no-results {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    border-bottom: 1px solid var(--gray-800);
+}
+
 .track-item {
     display: flex;
     justify-content: space-between;
