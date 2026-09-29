@@ -413,6 +413,51 @@ body {
     transition: all 0.3s;
 }
 
+/* Flags Container */
+.flags-container {
+    position: fixed;
+    top: 12px;
+    right: 180px;
+    z-index: 1001;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.flag {
+    font-size: 1.5rem;
+    animation: flagWave 2s ease-in-out infinite;
+    cursor: default;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    transition: transform 0.2s;
+}
+
+.flag:hover {
+    transform: scale(1.2);
+}
+
+.flag-us {
+    animation-delay: 0s;
+}
+
+.flag-nepal {
+    animation-delay: 0.3s;
+}
+
+@keyframes flagWave {
+    0%, 100% { 
+        transform: rotate(-5deg) translateY(0); 
+    }
+    25% { 
+        transform: rotate(5deg) translateY(-2px); 
+    }
+    50% { 
+        transform: rotate(-3deg) translateY(0); 
+    }
+    75% { 
+        transform: rotate(4deg) translateY(-1px); 
+    }
+}
+
 /* Status Widget (Top Right) */
 .status-widget {
     position: fixed;
