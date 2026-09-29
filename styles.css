@@ -100,6 +100,22 @@ body {
     pointer-events: none;
 }
 
+/* Facts Sidebar (Right) */
+.facts-sidebar {
+    position: fixed;
+    top: 120px;
+    right: 1rem;
+    width: 240px;
+    z-index: 50;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.facts-sidebar.hidden {
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
+}
+
 .sidebar-section {
     background: rgba(10, 10, 10, 0.9);
     border: 1px solid var(--gray-800);
@@ -300,8 +316,14 @@ body {
     padding: 0.5rem;
     background: var(--gray-900);
     border-bottom: 1px solid var(--gray-800);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--gray-500);
+    line-height: 1;
+}
+
+.status-bar span {
+    display: flex;
+    align-items: center;
 }
 
 .status-bar .divider {

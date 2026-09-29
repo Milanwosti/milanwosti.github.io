@@ -391,18 +391,18 @@ function fetchNews() {
 // Sidebar visibility on scroll
 function initSidebar() {
     const sidebar = document.getElementById('live-sidebar');
-    let lastScroll = 0;
+    const factsSidebar = document.getElementById('facts-sidebar');
     
     window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
         
         if (currentScroll > 500) {
             sidebar.classList.add('hidden');
+            factsSidebar.classList.add('hidden');
         } else {
             sidebar.classList.remove('hidden');
+            factsSidebar.classList.remove('hidden');
         }
-        
-        lastScroll = currentScroll;
     });
 }
 
