@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMusicPlayer();
     initSudoku();
     initContactForm();
+    initScheduleMeeting();
     initChatbox();
 });
 
@@ -388,22 +389,20 @@ function fetchNews() {
     `).join('');
 }
 
-// Sidebar visibility on scroll
+// Sidebar visibility on scroll (only left sidebar hides)
 function initSidebar() {
     const sidebar = document.getElementById('live-sidebar');
-    const factsSidebar = document.getElementById('facts-sidebar');
     
     window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
         
         if (currentScroll > 500) {
             sidebar.classList.add('hidden');
-            factsSidebar.classList.add('hidden');
         } else {
             sidebar.classList.remove('hidden');
-            factsSidebar.classList.remove('hidden');
         }
     });
+    // IT Facts sidebar stays visible always
 }
 
 // Music Player with YouTube Search
@@ -785,12 +784,79 @@ function initContactForm() {
         const email = document.getElementById('email').value;
         const message = document.getElementById('message').value;
         
-        const subject = encodeURIComponent(`Contact from ${name}`);
+        const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
         const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
         
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:wmilan291@gmail.com?subject=${subject}&body=${body}`;
         
         form.reset();
+    });
+}
+
+// Schedule Meeting
+function initScheduleMeeting() {
+    const scheduleBtn = document.getElementById('schedule-btn');
+    const modal = document.getElementById('schedule-modal');
+    const closeBtn = document.getElementById('schedule-close');
+    const form = document.getElementById('schedule-form');
+    const dateInput = document.getElementById('meeting-date');
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+    
+    scheduleBtn.addEventListener('click', () => modal.classList.add('active'));
+    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+    
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('visitor-name').value;
+        const email = document.getElementById('visitor-email').value;
+        const date = document.getElementById('meeting-date').value;
+        const time = document.getElementById('meeting-time').value;
+        const topic = document.getElementById('meeting-topic').value;
+        const notes = document.getElementById('meeting-notes').value;
+        
+        // Format the date nicely
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        const subject = encodeURIComponent(`Meeting Request: ${topic} - ${formattedDate} at ${time}`);
+        const body = encodeURIComponent(
+`MEETING REQUEST
+
+From: ${name}
+Email: ${email}
+
+Requested Date: ${formattedDate}
+Requested Time: ${time} (Pacific Time)
+
+Topic: ${topic}
+
+Additional Notes:
+${notes || 'None'}
+
+---
+Please reply to confirm or suggest an alternative time.
+This meeting request was sent from Milan Wosti's Portfolio website.`
+        );
+        
+        // Open email client with pre-filled meeting request
+        window.location.href = `mailto:wmilan291@gmail.com?subject=${subject}&body=${body}`;
+        
+        // Show success message
+        alert('Meeting request prepared! Your email client will open with the meeting details. Please send the email to complete your request.');
+        
+        form.reset();
+        modal.classList.remove('active');
     });
 }
 

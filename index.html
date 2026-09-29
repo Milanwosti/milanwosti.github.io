@@ -280,9 +280,9 @@
                         <a href="https://linkedin.com/in/milanwosticonnect" target="_blank" class="btn btn-linkedin">
                             Connect on LinkedIn
                         </a>
-                        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0?gv=true" target="_blank" class="btn btn-schedule" id="schedule-btn">
+                        <button class="btn btn-schedule" id="schedule-btn">
                             📅 Schedule a Meeting
-                        </a>
+                        </button>
                         <a href="mailto:wmilan291@gmail.com" class="btn btn-email">
                             ✉️ Send Email
                         </a>
@@ -353,6 +353,56 @@
 
     <!-- Persistent Audio Player (hidden iframe) -->
     <div id="persistent-player" style="position: fixed; bottom: -1000px; left: -1000px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- Schedule Meeting Modal -->
+    <div class="modal" id="schedule-modal">
+        <div class="modal-content schedule-modal">
+            <div class="modal-header">
+                <h3>📅 Schedule a Meeting with Milan</h3>
+                <button class="modal-close" id="schedule-close">×</button>
+            </div>
+            <form class="schedule-form" id="schedule-form">
+                <div class="form-group">
+                    <label for="visitor-name">Your Name *</label>
+                    <input type="text" id="visitor-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="visitor-email">Your Email *</label>
+                    <input type="email" id="visitor-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-date">Preferred Date *</label>
+                    <input type="date" id="meeting-date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-time">Preferred Time *</label>
+                    <select id="meeting-time" name="time" required>
+                        <option value="">Select a time</option>
+                        <option value="09:00 AM">09:00 AM</option>
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="12:00 PM">12:00 PM</option>
+                        <option value="01:00 PM">01:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                        <option value="05:00 PM">05:00 PM</option>
+                        <option value="06:00 PM">06:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-topic">Meeting Topic *</label>
+                    <input type="text" id="meeting-topic" name="topic" placeholder="e.g., Job Opportunity, Collaboration, etc." required>
+                </div>
+                <div class="form-group">
+                    <label for="meeting-notes">Additional Notes</label>
+                    <textarea id="meeting-notes" name="notes" rows="3" placeholder="Any additional information..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Send Meeting Request</button>
+                <p class="schedule-note">Meeting request will be sent to Milan's email. He will confirm the meeting via email.</p>
+            </form>
+        </div>
+    </div>
 
     <!-- Chatbox -->
     <div class="chatbox" id="chatbox">
