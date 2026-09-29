@@ -1228,7 +1228,112 @@ body {
 
 /* Sudoku Modal */
 .sudoku-modal {
-    max-width: 400px;
+    max-width: 420px;
+}
+
+.sudoku-name-entry {
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.sudoku-name-entry h4 {
+    font-size: 1rem;
+    color: var(--white);
+    margin-bottom: 1rem;
+}
+
+.sudoku-name-entry input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--gray-950);
+    border: 1px solid var(--gray-700);
+    border-radius: 6px;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.sudoku-name-entry input:focus {
+    outline: none;
+    border-color: var(--gray-500);
+}
+
+.leaderboard {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-800);
+}
+
+.leaderboard h4 {
+    font-size: 0.875rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--gray-900);
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.leaderboard-rank {
+    font-weight: 600;
+    color: var(--gray-400);
+    width: 30px;
+}
+
+.leaderboard-rank.gold { color: #ffd700; }
+.leaderboard-rank.silver { color: #c0c0c0; }
+.leaderboard-rank.bronze { color: #cd7f32; }
+
+.leaderboard-name {
+    flex: 1;
+    color: var(--white);
+    text-align: left;
+    padding-left: 0.5rem;
+}
+
+.leaderboard-time {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--gray-300);
+}
+
+.leaderboard-empty {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    padding: 1rem;
+}
+
+.sudoku-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.info-divider {
+    color: var(--gray-700);
+}
+
+#sudoku-timer {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--white);
 }
 
 .sudoku-levels {

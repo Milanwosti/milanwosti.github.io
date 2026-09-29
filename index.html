@@ -442,29 +442,51 @@
                 <h3>Sudoku</h3>
                 <button class="modal-close" id="sudoku-close">×</button>
             </div>
-            <div class="sudoku-levels" id="sudoku-levels">
-                <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
-                <button class="level-btn" data-level="normal">⚡ Normal</button>
-                <button class="level-btn" data-level="pro">🔥 Pro</button>
-            </div>
-            <div class="sudoku-info">
-                <span>Errors: <strong id="sudoku-errors">0</strong> / 10</span>
-            </div>
-            <div class="sudoku-grid" id="sudoku-grid"></div>
-            <div class="sudoku-controls">
-                <div class="number-pad" id="number-pad">
-                    <button data-num="1">1</button>
-                    <button data-num="2">2</button>
-                    <button data-num="3">3</button>
-                    <button data-num="4">4</button>
-                    <button data-num="5">5</button>
-                    <button data-num="6">6</button>
-                    <button data-num="7">7</button>
-                    <button data-num="8">8</button>
-                    <button data-num="9">9</button>
-                    <button data-num="0" class="erase">⌫</button>
+            
+            <!-- Player Name Entry -->
+            <div class="sudoku-name-entry" id="sudoku-name-entry">
+                <h4>Enter Your Name to Play</h4>
+                <input type="text" id="player-name" placeholder="Your name..." maxlength="20">
+                <button class="btn btn-primary" id="start-game-btn">Start Game</button>
+                
+                <div class="leaderboard" id="leaderboard">
+                    <h4>🏆 Top 3 Fastest Times</h4>
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <div class="leaderboard-empty">No records yet. Be the first!</div>
+                    </div>
                 </div>
-                <button class="btn btn-primary" id="new-game">New Game</button>
+            </div>
+            
+            <!-- Game Area (hidden until name entered) -->
+            <div class="sudoku-game" id="sudoku-game" style="display: none;">
+                <div class="sudoku-levels" id="sudoku-levels">
+                    <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
+                    <button class="level-btn" data-level="normal">⚡ Normal</button>
+                    <button class="level-btn" data-level="pro">🔥 Pro</button>
+                </div>
+                <div class="sudoku-info">
+                    <span>⏱️ <strong id="sudoku-timer">00:00</strong></span>
+                    <span class="info-divider">|</span>
+                    <span>Errors: <strong id="sudoku-errors">0</strong> / 10</span>
+                    <span class="info-divider">|</span>
+                    <span>Player: <strong id="current-player">Guest</strong></span>
+                </div>
+                <div class="sudoku-grid" id="sudoku-grid"></div>
+                <div class="sudoku-controls">
+                    <div class="number-pad" id="number-pad">
+                        <button data-num="1">1</button>
+                        <button data-num="2">2</button>
+                        <button data-num="3">3</button>
+                        <button data-num="4">4</button>
+                        <button data-num="5">5</button>
+                        <button data-num="6">6</button>
+                        <button data-num="7">7</button>
+                        <button data-num="8">8</button>
+                        <button data-num="9">9</button>
+                        <button data-num="0" class="erase">⌫</button>
+                    </div>
+                    <button class="btn btn-primary" id="new-game">New Game</button>
+                </div>
             </div>
         </div>
     </div>

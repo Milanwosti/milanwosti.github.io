@@ -65,7 +65,7 @@ function initStatusBar() {
     setInterval(updateGreeting, 60000);
 }
 
-// Quote of the Day
+// Quote of the Day - Changes every 5 seconds
 function initQuoteOfDay() {
     const brandQuote = document.getElementById('brand-quote');
     
@@ -103,10 +103,25 @@ function initQuoteOfDay() {
         "The way to get started is to quit talking and begin doing. — Walt Disney"
     ];
     
-    // Get quote based on day of year (changes daily)
-    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-    const quoteIndex = dayOfYear % quotes.length;
-    brandQuote.textContent = `💡 "${quotes[quoteIndex]}"`;
+    let currentIndex = Math.floor(Math.random() * quotes.length);
+    
+    function showQuote() {
+        brandQuote.style.opacity = '0';
+        setTimeout(() => {
+            brandQuote.textContent = `💡 "${quotes[currentIndex]}"`;
+            brandQuote.style.opacity = '1';
+            currentIndex = (currentIndex + 1) % quotes.length;
+        }, 300);
+    }
+    
+    // Shuffle quotes
+    for (let i = quotes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [quotes[i], quotes[j]] = [quotes[j], quotes[i]];
+    }
+    
+    showQuote();
+    setInterval(showQuote, 5000);
 }
 
 // IT Facts - Changes every 5 seconds
@@ -677,16 +692,23 @@ function initMusicPlayer() {
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && searchInput.value.trim()) searchMusic(searchInput.value.trim()); });
 }
 
-// Sudoku Game with Difficulty Levels
+// Sudoku Game with Timer and Leaderboard
 function initSudoku() {
     const btn = document.getElementById('sudoku-btn');
     const modal = document.getElementById('sudoku-modal');
     const closeBtn = document.getElementById('sudoku-close');
+    const nameEntry = document.getElementById('sudoku-name-entry');
+    const gameArea = document.getElementById('sudoku-game');
+    const playerNameInput = document.getElementById('player-name');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const currentPlayerEl = document.getElementById('current-player');
     const grid = document.getElementById('sudoku-grid');
     const errorsEl = document.getElementById('sudoku-errors');
+    const timerEl = document.getElementById('sudoku-timer');
     const numberPad = document.getElementById('number-pad');
     const newGameBtn = document.getElementById('new-game');
     const levelBtns = document.querySelectorAll('.level-btn');
+    const leaderboardList = document.getElementById('leaderboard-list');
 
     let board = [];
     let solution = [];
@@ -694,83 +716,75 @@ function initSudoku() {
     let selectedCell = null;
     let errors = 0;
     let currentLevel = 'beginner';
+    let playerName = 'Guest';
+    let timerInterval = null;
+    let seconds = 0;
     const maxErrors = 10;
 
-    // Puzzles for different difficulty levels
+    // Load leaderboard from localStorage
+    let leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard')) || [];
+
     const puzzles = {
         beginner: {
-            puzzle: [
-                5,3,4,0,7,0,0,0,0,
-                6,0,0,1,9,5,0,0,0,
-                0,9,8,0,0,0,0,6,0,
-                8,0,0,0,6,0,0,0,3,
-                4,0,0,8,0,3,0,0,1,
-                7,0,0,0,2,0,0,0,6,
-                0,6,0,0,0,0,2,8,0,
-                0,0,0,4,1,9,0,0,5,
-                0,0,0,0,8,0,0,7,9
-            ],
-            solution: [
-                5,3,4,6,7,8,9,1,2,
-                6,7,2,1,9,5,3,4,8,
-                1,9,8,3,4,2,5,6,7,
-                8,5,9,7,6,1,4,2,3,
-                4,2,6,8,5,3,7,9,1,
-                7,1,3,9,2,4,8,5,6,
-                9,6,1,5,3,7,2,8,4,
-                2,8,7,4,1,9,6,3,5,
-                3,4,5,2,8,6,1,7,9
-            ]
+            puzzle: [5,3,4,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,7,0,0,0,2,0,0,0,6,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,7,9],
+            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
         },
         normal: {
-            puzzle: [
-                0,0,0,0,7,0,0,0,0,
-                6,0,0,1,9,5,0,0,0,
-                0,9,0,0,0,0,0,6,0,
-                8,0,0,0,6,0,0,0,3,
-                4,0,0,8,0,3,0,0,1,
-                0,0,0,0,2,0,0,0,0,
-                0,6,0,0,0,0,2,8,0,
-                0,0,0,4,1,9,0,0,5,
-                0,0,0,0,8,0,0,0,0
-            ],
-            solution: [
-                5,3,4,6,7,8,9,1,2,
-                6,7,2,1,9,5,3,4,8,
-                1,9,8,3,4,2,5,6,7,
-                8,5,9,7,6,1,4,2,3,
-                4,2,6,8,5,3,7,9,1,
-                7,1,3,9,2,4,8,5,6,
-                9,6,1,5,3,7,2,8,4,
-                2,8,7,4,1,9,6,3,5,
-                3,4,5,2,8,6,1,7,9
-            ]
+            puzzle: [0,0,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,0,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,0,0,0,0,2,0,0,0,0,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,0,0],
+            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
         },
         pro: {
-            puzzle: [
-                0,0,0,0,0,0,0,0,0,
-                0,0,0,1,9,5,0,0,0,
-                0,9,0,0,0,0,0,6,0,
-                8,0,0,0,0,0,0,0,3,
-                0,0,0,8,0,3,0,0,0,
-                0,0,0,0,0,0,0,0,6,
-                0,6,0,0,0,0,0,8,0,
-                0,0,0,4,1,9,0,0,0,
-                0,0,0,0,0,0,0,0,0
-            ],
-            solution: [
-                5,3,4,6,7,8,9,1,2,
-                6,7,2,1,9,5,3,4,8,
-                1,9,8,3,4,2,5,6,7,
-                8,5,9,7,6,1,4,2,3,
-                4,2,6,8,5,3,7,9,1,
-                7,1,3,9,2,4,8,5,6,
-                9,6,1,5,3,7,2,8,4,
-                2,8,7,4,1,9,6,3,5,
-                3,4,5,2,8,6,1,7,9
-            ]
+            puzzle: [0,0,0,0,0,0,0,0,0,0,0,0,1,9,5,0,0,0,0,9,0,0,0,0,0,6,0,8,0,0,0,0,0,0,0,3,0,0,0,8,0,3,0,0,0,0,0,0,0,0,0,0,0,6,0,6,0,0,0,0,0,8,0,0,0,0,4,1,9,0,0,0,0,0,0,0,0,0,0,0,0],
+            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
         }
     };
+
+    function formatTime(secs) {
+        const m = Math.floor(secs / 60).toString().padStart(2, '0');
+        const s = (secs % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function startTimer() {
+        stopTimer();
+        seconds = 0;
+        timerEl.textContent = '00:00';
+        timerInterval = setInterval(() => {
+            seconds++;
+            timerEl.textContent = formatTime(seconds);
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function updateLeaderboard() {
+        if (leaderboard.length === 0) {
+            leaderboardList.innerHTML = '<div class="leaderboard-empty">No records yet. Be the first!</div>';
+            return;
+        }
+        
+        const ranks = ['gold', 'silver', 'bronze'];
+        leaderboardList.innerHTML = leaderboard.slice(0, 3).map((entry, i) => `
+            <div class="leaderboard-item">
+                <span class="leaderboard-rank ${ranks[i]}">#${i + 1}</span>
+                <span class="leaderboard-name">${entry.name}</span>
+                <span class="leaderboard-time">${formatTime(entry.time)}</span>
+            </div>
+        `).join('');
+    }
+
+    function saveToLeaderboard(name, time) {
+        leaderboard.push({ name, time, date: new Date().toISOString() });
+        leaderboard.sort((a, b) => a.time - b.time);
+        leaderboard = leaderboard.slice(0, 10); // Keep top 10
+        localStorage.setItem('sudokuLeaderboard', JSON.stringify(leaderboard));
+        updateLeaderboard();
+    }
 
     function initBoard() {
         const puzzle = puzzles[currentLevel];
@@ -780,6 +794,7 @@ function initSudoku() {
         errors = 0;
         errorsEl.textContent = errors;
         selectedCell = null;
+        startTimer();
         renderBoard();
     }
 
@@ -795,9 +810,7 @@ function initSudoku() {
                 cell.textContent = num;
             } else if (num !== 0) {
                 cell.textContent = num;
-                if (num !== solution[i]) {
-                    cell.classList.add('error');
-                }
+                if (num !== solution[i]) cell.classList.add('error');
             }
             
             cell.addEventListener('click', () => selectCell(i));
@@ -807,10 +820,8 @@ function initSudoku() {
 
     function selectCell(index) {
         if (currentPuzzle[index] !== 0) return;
-        
         document.querySelectorAll('.sudoku-cell').forEach(c => c.classList.remove('selected'));
-        const cell = grid.children[index];
-        cell.classList.add('selected');
+        grid.children[index].classList.add('selected');
         selectedCell = index;
     }
 
@@ -827,6 +838,7 @@ function initSudoku() {
                 errorsEl.textContent = errors;
                 
                 if (errors >= maxErrors) {
+                    stopTimer();
                     setTimeout(() => {
                         alert('Game Over! You made ' + maxErrors + ' mistakes. Try again!');
                         initBoard();
@@ -837,48 +849,70 @@ function initSudoku() {
             
             // Check win
             if (board.every((val, i) => val === solution[i])) {
+                stopTimer();
+                const finalTime = seconds;
                 setTimeout(() => {
-                    alert('🎉 Congratulations! You solved the ' + currentLevel + ' puzzle!');
+                    alert(`🎉 Congratulations ${playerName}! You solved the ${currentLevel} puzzle in ${formatTime(finalTime)}!`);
+                    saveToLeaderboard(playerName, finalTime);
+                    // Show name entry again
+                    gameArea.style.display = 'none';
+                    nameEntry.style.display = 'block';
                 }, 300);
             }
         }
         
         renderBoard();
-        if (selectedCell !== null) {
-            grid.children[selectedCell].classList.add('selected');
-        }
+        if (selectedCell !== null) grid.children[selectedCell].classList.add('selected');
     }
 
+    // Start game button
+    startGameBtn.addEventListener('click', () => {
+        playerName = playerNameInput.value.trim() || 'Guest';
+        currentPlayerEl.textContent = playerName;
+        nameEntry.style.display = 'none';
+        gameArea.style.display = 'block';
+        initBoard();
+    });
+
+    playerNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startGameBtn.click();
+    });
+
     // Level selection
-    levelBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+    levelBtns.forEach(levelBtn => {
+        levelBtn.addEventListener('click', () => {
             levelBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentLevel = btn.dataset.level;
+            levelBtn.classList.add('active');
+            currentLevel = levelBtn.dataset.level;
             initBoard();
         });
     });
 
     btn.addEventListener('click', () => {
         modal.classList.add('active');
-        if (board.length === 0) initBoard();
+        updateLeaderboard();
     });
 
-    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        stopTimer();
+    });
+    
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.remove('active');
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            stopTimer();
+        }
     });
 
     numberPad.addEventListener('click', (e) => {
-        if (e.target.dataset.num !== undefined) {
-            enterNumber(parseInt(e.target.dataset.num));
-        }
+        if (e.target.dataset.num !== undefined) enterNumber(parseInt(e.target.dataset.num));
     });
 
     newGameBtn.addEventListener('click', initBoard);
 
     document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active')) return;
+        if (!modal.classList.contains('active') || gameArea.style.display === 'none') return;
         if (e.key >= '1' && e.key <= '9') enterNumber(parseInt(e.key));
         else if (e.key === 'Backspace' || e.key === 'Delete') enterNumber(0);
     });
