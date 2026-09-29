@@ -99,24 +99,25 @@ function initNavigation() {
 // Floating Tools with Drag & Drop
 function initFloatingTools() {
     const container = document.getElementById('floating-tools');
+    
+    // IT tool icons (using emoji/unicode symbols)
     const tools = [
-        'Active Directory', 'Okta', 'Jamf', 'Azure AD', 'Intune',
-        'ServiceNow', 'CrowdStrike', 'Microsoft 365', 'AWS',
-        'Docker', 'Kubernetes', 'PowerShell', 'Python', 'SQL',
-        'Linux', 'Windows Server', 'Cortex XDR', 'Prisma Cloud'
+        '🖥️', '💻', '🔐', '🔑', '☁️', '🛡️', '⚙️', '🔧', 
+        '📊', '🗄️', '🌐', '📡', '🔌', '💾', '📁', '🖨️',
+        '🔒', '📱', '🖱️', '⌨️', '🔋', '📶', '💿', '🧮'
     ];
 
-    tools.forEach((tool, i) => {
+    tools.forEach((icon, i) => {
         const el = document.createElement('div');
         el.className = 'float-item';
-        el.textContent = tool;
-        el.style.left = Math.random() * 80 + 5 + '%';
-        el.style.top = Math.random() * 80 + 5 + '%';
+        el.textContent = icon;
+        el.style.left = Math.random() * 85 + 5 + '%';
+        el.style.top = Math.random() * 85 + 5 + '%';
         
         // Animation
-        const duration = 30 + Math.random() * 30;
-        const delay = Math.random() * 10;
-        el.style.animation = `floatMove ${duration}s ${delay}s infinite ease-in-out`;
+        const duration = 40 + Math.random() * 40;
+        const delay = Math.random() * 15;
+        el.style.animation = `floatMove${i % 4} ${duration}s ${delay}s infinite ease-in-out`;
         
         // Hover pause
         el.addEventListener('mouseenter', () => {
@@ -157,7 +158,7 @@ function initFloatingTools() {
                 el.classList.remove('dragging');
                 setTimeout(() => {
                     el.classList.remove('paused');
-                    el.style.animation = `floatMove ${duration}s infinite ease-in-out`;
+                    el.style.animation = `floatMove${i % 4} ${duration}s infinite ease-in-out`;
                 }, 2000);
             }
         });
@@ -165,14 +166,24 @@ function initFloatingTools() {
         container.appendChild(el);
     });
 
-    // Add animation keyframes
+    // Add varied animation keyframes
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes floatMove {
+        @keyframes floatMove0 {
             0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px); }
-            50% { transform: translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px); }
-            75% { transform: translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px); }
+            50% { transform: translate(30px, -20px); }
+        }
+        @keyframes floatMove1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-25px, 25px); }
+        }
+        @keyframes floatMove2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, 30px); }
+        }
+        @keyframes floatMove3 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-30px, -15px); }
         }
     `;
     document.head.appendChild(style);
