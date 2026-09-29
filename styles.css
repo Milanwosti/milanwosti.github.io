@@ -285,6 +285,40 @@ body {
     color: var(--white);
 }
 
+.music-control {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border: 1px solid var(--gray-700);
+    background: var(--gray-800);
+    color: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: pulse 2s infinite;
+}
+
+.music-control:hover {
+    background: var(--gray-700);
+    border-color: var(--gray-500);
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2); }
+    50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0); }
+}
+
+.now-playing {
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    background: var(--gray-800);
+    border-top: 1px solid var(--gray-700);
+}
+
+.now-playing-text {
+    font-size: 0.75rem;
+    color: var(--gray-400);
+}
+
 .menu-toggle {
     display: none;
     flex-direction: column;

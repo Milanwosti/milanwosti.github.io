@@ -54,6 +54,9 @@
             <div class="header-actions">
                 <button class="game-btn" id="sudoku-btn">Sudoku</button>
                 <button class="music-btn" id="music-btn">♪ Music</button>
+                <button class="music-control" id="music-control" style="display: none;">
+                    <span id="music-control-icon">⏸️</span>
+                </button>
             </div>
             <button class="menu-toggle" id="menu-toggle">
                 <span></span>
@@ -342,8 +345,14 @@
             <div class="youtube-player" id="youtube-player">
                 <p class="player-placeholder">Select a track or search for any song</p>
             </div>
+            <div class="now-playing" id="now-playing" style="display: none;">
+                <span class="now-playing-text">🎵 Now Playing</span>
+            </div>
         </div>
     </div>
+
+    <!-- Persistent Audio Player (hidden iframe) -->
+    <div id="persistent-player" style="position: fixed; bottom: -1000px; left: -1000px; width: 1px; height: 1px; overflow: hidden;"></div>
 
     <!-- Chatbox -->
     <div class="chatbox" id="chatbox">
