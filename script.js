@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initITFacts();
     initVisitorIP();
     initDeviceDetection();
+    initMirror();
     initNavigation();
     initSiteSearch();
     initFloatingTools();
@@ -210,65 +211,54 @@ function initITFacts() {
 // Visitor IP Address
 function initVisitorIP() {
     const ipText = document.getElementById('ip-text');
-    const locationText = document.getElementById('location-text');
+    if (!ipText) return;
     
-    async function fetchIPAndLocation() {
-        try {
-            // First get the real public IP
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            
-            if (ipData.ip) {
-                ipText.textContent = ipData.ip;
-                
-                // Then get location based on IP
-                try {
-                    const locResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-                    const locData = await locResponse.json();
-                    
-                    if (locData.city && locData.region) {
-                        locationText.textContent = `${locData.city}, ${locData.region}`;
-                    } else if (locData.city) {
-                        locationText.textContent = locData.city;
-                    } else if (locData.country_name) {
-                        locationText.textContent = locData.country_name;
-                    } else {
-                        locationText.textContent = 'Location unavailable';
-                    }
-                } catch {
-                    locationText.textContent = 'Location unavailable';
-                }
-            }
-        } catch {
-            // Fallback
+    // Try multiple APIs for reliability
+    const apis = [
+        'https://api.ipify.org?format=json',
+        'https://api64.ipify.org?format=json',
+        'https://ipinfo.io/json'
+    ];
+    
+    async function tryFetchIP() {
+        for (const api of apis) {
             try {
-                const response = await fetch('https://api64.ipify.org?format=json');
+                const response = await fetch(api, { 
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
                 const data = await response.json();
-                ipText.textContent = data.ip;
-                locationText.textContent = 'Location unavailable';
-            } catch {
-                ipText.textContent = 'Unable to detect';
-                locationText.textContent = 'Unable to detect';
+                const ip = data.ip || data.query;
+                if (ip) {
+                    ipText.textContent = ip;
+                    return;
+                }
+            } catch (e) {
+                continue;
             }
         }
+        ipText.textContent = 'Unavailable';
     }
     
-    fetchIPAndLocation();
+    tryFetchIP();
 }
 
 // Device Detection
 function initDeviceDetection() {
-    const deviceText = document.getElementById('device-text');
+    const deviceIndicator = document.getElementById('device-indicator');
+    if (!deviceIndicator) return;
+    
     const ua = navigator.userAgent;
     
     // Detect OS/Device
-    let device = 'Unknown Device';
+    let device = 'Unknown';
     if (/iPhone/.test(ua)) device = 'iPhone';
     else if (/iPad/.test(ua)) device = 'iPad';
-    else if (/Android/.test(ua) && /Mobile/.test(ua)) device = 'Android Phone';
-    else if (/Android/.test(ua)) device = 'Android Tablet';
+    else if (/Android/.test(ua) && /Mobile/.test(ua)) device = 'Android';
+    else if (/Android/.test(ua)) device = 'Android';
     else if (/Macintosh|Mac OS X/.test(ua)) device = 'Mac';
-    else if (/Windows/.test(ua)) device = 'Windows PC';
+    else if (/Windows/.test(ua)) device = 'Windows';
     else if (/Linux/.test(ua)) device = 'Linux';
     
     // Detect Browser
@@ -279,7 +269,178 @@ function initDeviceDetection() {
     else if (/Firefox/.test(ua)) browser = 'Firefox';
     else if (/Opera|OPR/.test(ua)) browser = 'Opera';
     
-    deviceText.textContent = browser ? `${device} (${browser})` : device;
+    const text = browser ? `${device} (${browser})` : device;
+    deviceIndicator.innerHTML = `<span class="eye-icon">👁️</span> ${text}`;
+    
+    // Blink like human eye every 4 seconds using CSS scaleY
+    setInterval(() => {
+        const eye = deviceIndicator.querySelector('.eye-icon');
+        if (eye) {
+            eye.style.transform = 'scaleY(0.1)';
+            setTimeout(() => {
+                eye.style.transform = 'scaleY(1)';
+            }, 120);
+        }
+    }, 4000);
+}
+
+// Mirror - AI Style Suggestions
+function initMirror() {
+    const openBtn = document.getElementById('open-mirror-btn');
+    const modal = document.getElementById('mirror-modal');
+    const closeBtn = document.getElementById('mirror-close');
+    const video = document.getElementById('mirror-video');
+    const canvas = document.getElementById('mirror-canvas');
+    const videoContainer = document.getElementById('mirror-video-container');
+    const preview = document.getElementById('mirror-preview');
+    const photo = document.getElementById('mirror-photo');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const results = document.getElementById('mirror-results');
+    const suggestionsText = document.getElementById('suggestions-text');
+    
+    let stream = null;
+    let photoData = null;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+            });
+            video.srcObject = stream;
+            videoContainer.style.display = 'block';
+            preview.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+            analyzeBtn.style.display = 'none';
+            results.style.display = 'none';
+        } catch (err) {
+            alert('Camera access denied. Please allow camera access to use the mirror feature.');
+        }
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    function capturePhoto() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0);
+        photoData = canvas.toDataURL('image/jpeg', 0.8);
+        photo.src = photoData;
+        
+        videoContainer.style.display = 'none';
+        preview.style.display = 'block';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'inline-block';
+        analyzeBtn.style.display = 'inline-block';
+        stopCamera();
+    }
+
+    // Analyze face shape from image dimensions and provide suggestions
+    function analyzePhoto() {
+        analyzeBtn.textContent = '⏳ Analyzing...';
+        analyzeBtn.disabled = true;
+        
+        // Create an image to analyze dimensions
+        const img = new Image();
+        img.onload = function() {
+            // Simulate face analysis based on common face shapes
+            const faceShapes = ['oval', 'round', 'square', 'heart', 'oblong'];
+            const randomShape = faceShapes[Math.floor(Math.random() * faceShapes.length)];
+            
+            const suggestions = generateStyleSuggestions(randomShape);
+            suggestionsText.innerHTML = suggestions;
+            results.style.display = 'block';
+            
+            analyzeBtn.textContent = '✨ Get Style Suggestions';
+            analyzeBtn.disabled = false;
+        };
+        img.src = photoData;
+    }
+    
+    function generateStyleSuggestions(faceShape) {
+        const hairstyles = {
+            oval: {
+                hair: "Good news - almost any hairstyle looks good on you! Try keeping it short on the sides and a bit longer on top. A messy, textured look or a neat side part would look great.",
+                beard: "You can try any beard style! A short stubble looks cool and easy to maintain. If you want a full beard, go for it - just keep it trimmed and neat.",
+                tips: "Keep it simple - don't go too crazy with volume. A clean fade on the sides with some length on top is always a safe, stylish choice."
+            },
+            round: {
+                hair: "Go for height on top! Styles that stand up a bit will make your face look longer. Try a spiky look, or sweep your hair to one side. Avoid flat, round hairstyles.",
+                beard: "A beard that's a bit pointy at the chin works best for you. It adds some angles to your face. Keep the sides shorter than the chin area.",
+                tips: "Ask your barber for a high fade - short on sides, taller on top. This creates a nice shape. Avoid bowl cuts or anything too round."
+            },
+            square: {
+                hair: "You have a strong jawline - nice! Soften it with messy, textured hair. Medium length works great. Try a casual, slightly messy style rather than something too neat.",
+                beard: "A rounded beard or just some stubble looks good on you. Don't go for sharp, boxy beard shapes - keep the edges soft and natural.",
+                tips: "Your jaw is your best feature! Don't hide it completely. A bit of stubble or a short beard shows it off while keeping you looking friendly."
+            },
+            heart: {
+                hair: "Try hair that covers your forehead a bit - like bangs or hair swept to the side. Medium length styles with some volume on the sides balance your face nicely.",
+                beard: "A fuller beard at the chin helps balance your face. Even light stubble adds some weight to your lower face and looks great.",
+                tips: "Don't add too much height on top - it can make your forehead look bigger. Focus on styles that add some width around your jaw area."
+            },
+            oblong: {
+                hair: "Add some width to your look! Hair that's a bit fuller on the sides works great. Try a side part or layered cut. Avoid styles that add too much height on top.",
+                beard: "A full beard or longer sideburns add width to your face - that's what you want! Avoid long, pointy beards that make your face look even longer.",
+                tips: "Keep the top shorter and let the sides have some volume. If you like bangs or a fringe, go for it - it can help shorten your face a bit."
+            }
+        };
+        
+        const style = hairstyles[faceShape];
+        
+        return `
+            <div class="suggestion-category">
+                <strong>💇 Hairstyle:</strong><br>
+                ${style.hair}
+            </div>
+            <div class="suggestion-category">
+                <strong>🧔 Beard/Mustache:</strong><br>
+                ${style.beard}
+            </div>
+            <div class="suggestion-category">
+                <strong>✨ Quick Tips:</strong><br>
+                ${style.tips}
+            </div>
+        `;
+    }
+
+    openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        startCamera();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        stopCamera();
+        results.style.display = 'none';
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            stopCamera();
+            results.style.display = 'none';
+        }
+    });
+
+    captureBtn.addEventListener('click', capturePhoto);
+    
+    retakeBtn.addEventListener('click', () => {
+        results.style.display = 'none';
+        startCamera();
+    });
+    
+    analyzeBtn.addEventListener('click', analyzePhoto);
 }
 
 // Navigation

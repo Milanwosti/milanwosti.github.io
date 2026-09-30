@@ -43,13 +43,13 @@
             <h4>🌐 Your IP Address</h4>
             <div class="ip-text" id="ip-text">Detecting...</div>
         </div>
-        <div class="sidebar-section" id="location-section">
-            <h4>📍 Your Location</h4>
-            <div class="location-text" id="location-text">Detecting...</div>
-        </div>
-        <div class="sidebar-section" id="device-section">
-            <h4>💻 Your Device</h4>
-            <div class="device-text" id="device-text">Detecting...</div>
+        <div class="sidebar-section" id="mirror-section">
+            <div class="mirror-container">
+                <button class="mirror-btn-round" id="open-mirror-btn">
+                    <span class="mirror-title">🪞 Try Mirror</span>
+                    <span class="mirror-subtitle">I can suggest hairstyle, beard style & grooming tips!</span>
+                </button>
+            </div>
         </div>
     </aside>
 
@@ -84,13 +84,14 @@
                 <button class="music-control" id="music-control" style="display: none;">
                     <span id="music-control-icon">⏸️</span>
                 </button>
+                <button class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+                <span class="device-indicator" id="device-indicator">Detecting...</span>
                 <div class="header-flags">
                     <span class="flag flag-us" title="United States">🇺🇸</span>
                     <span class="flag flag-nepal" title="Nepal">🇳🇵</span>
                 </div>
-                <button class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">
-                    <span id="theme-icon">🌙</span>
-                </button>
             </div>
             <button class="menu-toggle" id="menu-toggle">
                 <span></span>
@@ -466,6 +467,35 @@
     </div>
 
     <!-- Sudoku Modal -->
+    <!-- Mirror Modal -->
+    <div class="modal" id="mirror-modal">
+        <div class="modal-content mirror-modal">
+            <div class="modal-header">
+                <h3>🪞 Style Mirror</h3>
+                <button class="modal-close" id="mirror-close">×</button>
+            </div>
+            <div class="mirror-content">
+                <div class="mirror-video-container" id="mirror-video-container">
+                    <video id="mirror-video" autoplay playsinline></video>
+                    <canvas id="mirror-canvas" style="display: none;"></canvas>
+                </div>
+                <div class="mirror-preview" id="mirror-preview" style="display: none;">
+                    <img id="mirror-photo" alt="Your photo">
+                </div>
+                <div class="mirror-controls">
+                    <button class="btn btn-primary" id="capture-btn">📸 Take Selfie</button>
+                    <button class="btn btn-secondary" id="retake-btn" style="display: none;">🔄 Retake</button>
+                    <button class="btn btn-primary" id="analyze-btn" style="display: none;">✨ Get Style Suggestions</button>
+                </div>
+                <div class="mirror-results" id="mirror-results" style="display: none;">
+                    <h4>💇 Style Suggestions</h4>
+                    <div class="suggestions-text" id="suggestions-text"></div>
+                </div>
+                <p class="mirror-privacy">🔒 We won't save your picture. All processing happens securely.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Tech Quiz Modal -->
     <div class="modal" id="quiz-modal">
         <div class="modal-content quiz-modal">
