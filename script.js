@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initLiveData();
     initSidebar();
     initMusicPlayer();
-    initSudoku();
+    initTechQuiz();
+    initThemeToggle();
     initContactForm();
     initScheduleMeeting();
     initChatbox();
@@ -268,7 +269,7 @@ function initSiteSearch() {
         { title: 'LinkedIn Profile', section: 'Contact', link: '#contact', keywords: 'linkedin profile social connect' },
         { title: 'Schedule Meeting', section: 'Contact', link: '#contact', keywords: 'schedule meeting appointment calendar' },
         { title: 'Send Email', section: 'Contact', link: '#contact', keywords: 'send email message wmilan291@gmail.com' },
-        { title: 'Play Sudoku Game', section: 'Games', link: '#', keywords: 'sudoku game play puzzle', action: 'sudoku' },
+        { title: 'Play Tech Quiz', section: 'Games', link: '#', keywords: 'quiz game play tech trivia', action: 'quiz' },
         { title: 'Music Player', section: 'Music', link: '#', keywords: 'music player songs play listen', action: 'music' },
         { title: 'Ask Milan Chatbot', section: 'Chat', link: '#', keywords: 'ask milan chatbot ai assistant help question', action: 'chat' }
     ];
@@ -313,8 +314,8 @@ function initSiteSearch() {
             const action = result.dataset.action;
             const link = result.dataset.link;
             
-            if (action === 'sudoku') {
-                document.getElementById('sudoku-btn').click();
+            if (action === 'quiz') {
+                document.getElementById('quiz-btn').click();
             } else if (action === 'music') {
                 document.getElementById('music-btn').click();
             } else if (action === 'chat') {
@@ -401,7 +402,7 @@ function initFloatingTools() {
                 el.style.transform = `translate(${moveX}px, ${moveY}px) scale(${1 + force * 0.3})`;
                 el.style.opacity = 0.3 + force * 0.7;
                 el.style.filter = 'grayscale(0%)';
-            } else {
+        } else {
                 el.style.transform = '';
                 el.style.opacity = '';
                 el.style.filter = '';
@@ -437,9 +438,9 @@ function initLiveData() {
     fetchCrypto();
     fetchStocks();
     fetchNews();
-    setInterval(fetchCrypto, 60000);
-    setInterval(fetchStocks, 60000);
-    setInterval(fetchNews, 300000);
+    setInterval(fetchCrypto, 60000);      // Every 1 minute
+    setInterval(fetchStocks, 60000);      // Every 1 minute
+    setInterval(fetchNews, 3600000);      // Every 1 hour (news rotates hourly)
 }
 
 async function fetchCrypto() {
@@ -485,24 +486,59 @@ async function fetchStocks() {
     `).join('');
 }
 
-function fetchNews() {
+async function fetchNews() {
     const container = document.getElementById('news-data');
-    const headlines = [
-        { 
-            title: 'Tech stocks rally as AI investments surge', 
-            source: 'Reuters',
-            url: 'https://www.reuters.com/technology/'
-        },
-        { 
-            title: 'Federal Reserve signals potential rate decisions', 
-            source: 'Bloomberg',
-            url: 'https://www.bloomberg.com/markets'
-        },
-        { 
-            title: 'Global markets respond to economic indicators', 
-            source: 'CNBC',
-            url: 'https://www.cnbc.com/world-markets/'
+    
+    // Try to fetch real news from free APIs
+    try {
+        // Using GNews API (free tier)
+        const response = await fetch('https://gnews.io/api/v4/top-headlines?category=general&lang=en&max=3&apikey=demo');
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.articles && data.articles.length > 0) {
+                container.innerHTML = data.articles.slice(0, 3).map(article => `
+                    <div class="news-item">
+                        <a href="${article.url}" target="_blank" rel="noopener noreferrer">
+                            ${article.title.length > 60 ? article.title.substring(0, 60) + '...' : article.title}
+                            <span class="news-source">${article.source.name} ↗</span>
+                        </a>
+                    </div>
+                `).join('');
+                return;
+            }
         }
+    } catch (e) {
+        console.log('News API unavailable, using curated headlines');
+    }
+    
+    // Fallback: Rotating curated world news headlines
+    const allHeadlines = [
+        { title: 'AI Revolution: Tech Giants Race to Deploy New Models', source: 'Reuters', url: 'https://www.reuters.com/technology/' },
+        { title: 'Global Markets Rally on Economic Optimism', source: 'Bloomberg', url: 'https://www.bloomberg.com/markets' },
+        { title: 'Climate Summit: World Leaders Announce New Targets', source: 'BBC', url: 'https://www.bbc.com/news/world' },
+        { title: 'Space Exploration: New Discoveries Beyond Mars', source: 'NASA', url: 'https://www.nasa.gov/news/' },
+        { title: 'Cybersecurity Alert: Major Vulnerabilities Patched', source: 'TechCrunch', url: 'https://techcrunch.com/security/' },
+        { title: 'Electric Vehicles Sales Surge Worldwide', source: 'CNBC', url: 'https://www.cnbc.com/technology/' },
+        { title: 'Healthcare Breakthrough: New Treatment Approved', source: 'CNN', url: 'https://www.cnn.com/health' },
+        { title: 'Renewable Energy Investment Hits Record High', source: 'Guardian', url: 'https://www.theguardian.com/environment' },
+        { title: 'Global Trade: New Agreements Shape Economy', source: 'WSJ', url: 'https://www.wsj.com/world' },
+        { title: 'Tech Layoffs Continue Amid Industry Shifts', source: 'Forbes', url: 'https://www.forbes.com/technology/' },
+        { title: 'Cryptocurrency Markets Show Signs of Recovery', source: 'CoinDesk', url: 'https://www.coindesk.com/' },
+        { title: 'Aviation Industry Rebounds Post-Pandemic', source: 'Reuters', url: 'https://www.reuters.com/business/' },
+        { title: 'Education Tech Transforms Learning Globally', source: 'EdWeek', url: 'https://www.edweek.org/' },
+        { title: 'Smart Cities: Urban Innovation Accelerates', source: 'Wired', url: 'https://www.wired.com/' },
+        { title: 'Supply Chain Improvements Boost Manufacturing', source: 'Bloomberg', url: 'https://www.bloomberg.com/supply-chain' }
+    ];
+    
+    // Rotate based on current hour (changes every hour)
+    const currentHour = new Date().getHours();
+    const startIndex = (currentHour * 3) % allHeadlines.length;
+    
+    const headlines = [
+        allHeadlines[startIndex % allHeadlines.length],
+        allHeadlines[(startIndex + 1) % allHeadlines.length],
+        allHeadlines[(startIndex + 2) % allHeadlines.length]
     ];
     
     container.innerHTML = headlines.map(n => `
@@ -758,236 +794,268 @@ function initMusicPlayer() {
     searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && searchInput.value.trim()) searchMusic(searchInput.value.trim()); });
 }
 
-// Sudoku Game with Timer and Leaderboard
-function initSudoku() {
-    const btn = document.getElementById('sudoku-btn');
-    const btnMobile = document.getElementById('sudoku-btn-mobile');
-    const modal = document.getElementById('sudoku-modal');
-    const closeBtn = document.getElementById('sudoku-close');
-    const nameEntry = document.getElementById('sudoku-name-entry');
-    const gameArea = document.getElementById('sudoku-game');
-    const playerNameInput = document.getElementById('player-name');
-    const startGameBtn = document.getElementById('start-game-btn');
-    const currentPlayerEl = document.getElementById('current-player');
-    const grid = document.getElementById('sudoku-grid');
-    const errorsEl = document.getElementById('sudoku-errors');
-    const timerEl = document.getElementById('sudoku-timer');
-    const numberPad = document.getElementById('number-pad');
-    const newGameBtn = document.getElementById('new-game');
-    const levelBtns = document.querySelectorAll('.level-btn');
-    const leaderboardList = document.getElementById('leaderboard-list');
+// Tech Quiz Game
+function initTechQuiz() {
+    const btn = document.getElementById('quiz-btn');
+    const btnMobile = document.getElementById('quiz-btn-mobile');
+    const modal = document.getElementById('quiz-modal');
+    const closeBtn = document.getElementById('quiz-close');
+    const startScreen = document.getElementById('quiz-start');
+    const gameScreen = document.getElementById('quiz-game');
+    const resultsScreen = document.getElementById('quiz-results');
+    const playerNameInput = document.getElementById('quiz-player-name');
+    const startBtn = document.getElementById('start-quiz-btn');
+    const difficultyBtns = document.querySelectorAll('.quiz-difficulty .level-btn');
+    const questionEl = document.getElementById('quiz-question');
+    const optionsEl = document.getElementById('quiz-options');
+    const feedbackEl = document.getElementById('quiz-feedback');
+    const currentEl = document.getElementById('quiz-current');
+    const scoreEl = document.getElementById('quiz-score');
+    const timerEl = document.getElementById('quiz-timer');
+    const finalScoreEl = document.getElementById('final-score');
+    const resultsMessageEl = document.getElementById('results-message');
+    const playAgainBtn = document.getElementById('play-again-btn');
+    const leaderboardList = document.getElementById('quiz-leaderboard-list');
     const navLinks = document.getElementById('nav-links');
 
-    let board = [];
-    let solution = [];
-    let currentPuzzle = [];
-    let selectedCell = null;
-    let errors = 0;
-    let currentLevel = 'beginner';
-    let playerName = 'Guest';
+    let currentQuestion = 0;
+    let score = 0;
+    let timer = 30;
     let timerInterval = null;
-    let seconds = 0;
-    const maxErrors = 10;
+    let difficulty = 'easy';
+    let playerName = 'Guest';
+    let questions = [];
+    let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard')) || [];
 
-    // Load leaderboard from localStorage
-    let leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard')) || [];
-
-    const puzzles = {
-        beginner: {
-            puzzle: [5,3,4,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,7,0,0,0,2,0,0,0,6,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,7,9],
-            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
-        },
-        normal: {
-            puzzle: [0,0,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,0,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,0,0,0,0,2,0,0,0,0,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,0,0],
-            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
-        },
-        pro: {
-            puzzle: [0,0,0,0,0,0,0,0,0,0,0,0,1,9,5,0,0,0,0,9,0,0,0,0,0,6,0,8,0,0,0,0,0,0,0,3,0,0,0,8,0,3,0,0,0,0,0,0,0,0,0,0,0,6,0,6,0,0,0,0,0,8,0,0,0,0,4,1,9,0,0,0,0,0,0,0,0,0,0,0,0],
-            solution: [5,3,4,6,7,8,9,1,2,6,7,2,1,9,5,3,4,8,1,9,8,3,4,2,5,6,7,8,5,9,7,6,1,4,2,3,4,2,6,8,5,3,7,9,1,7,1,3,9,2,4,8,5,6,9,6,1,5,3,7,2,8,4,2,8,7,4,1,9,6,3,5,3,4,5,2,8,6,1,7,9]
-        }
+    const allQuestions = {
+        easy: [
+            { q: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Personal Unit", "Central Program Utility", "Computer Processing Unit"], answer: 0 },
+            { q: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"], answer: 0 },
+            { q: "Which company created Windows?", options: ["Apple", "Microsoft", "Google", "IBM"], answer: 1 },
+            { q: "What is the brain of a computer?", options: ["RAM", "Hard Drive", "CPU", "Monitor"], answer: 2 },
+            { q: "What does USB stand for?", options: ["Universal Serial Bus", "United System Bus", "Universal System Backup", "User Serial Bus"], answer: 0 },
+            { q: "Which is a web browser?", options: ["Windows", "Chrome", "Python", "Excel"], answer: 1 },
+            { q: "What does RAM stand for?", options: ["Read Access Memory", "Random Access Memory", "Run Access Memory", "Real Access Memory"], answer: 1 },
+            { q: "What is the shortcut to copy?", options: ["Ctrl+V", "Ctrl+X", "Ctrl+C", "Ctrl+Z"], answer: 2 },
+            { q: "Which is a programming language?", options: ["HTML", "Python", "HTTP", "FTP"], answer: 1 },
+            { q: "What does PDF stand for?", options: ["Portable Document Format", "Print Document File", "Personal Data Format", "Public Document Format"], answer: 0 }
+        ],
+        medium: [
+            { q: "What does SQL stand for?", options: ["Structured Query Language", "Simple Query Language", "Standard Query Logic", "System Query Language"], answer: 0 },
+            { q: "What is the default port for HTTPS?", options: ["80", "443", "8080", "22"], answer: 1 },
+            { q: "Which protocol is used for email?", options: ["FTP", "HTTP", "SMTP", "SSH"], answer: 2 },
+            { q: "What does API stand for?", options: ["Application Programming Interface", "Advanced Program Integration", "Application Process Interface", "Automated Programming Interface"], answer: 0 },
+            { q: "What is the main function of DNS?", options: ["Security", "Domain to IP translation", "Data storage", "Email routing"], answer: 1 },
+            { q: "Which is NOT a cloud provider?", options: ["AWS", "Azure", "Oracle", "Linux"], answer: 3 },
+            { q: "What does VPN stand for?", options: ["Virtual Private Network", "Virtual Public Network", "Verified Private Network", "Visual Private Network"], answer: 0 },
+            { q: "What is Git used for?", options: ["Database management", "Version control", "Web hosting", "Email"], answer: 1 },
+            { q: "What does SSD stand for?", options: ["Solid State Drive", "System Storage Device", "Super Speed Disk", "Solid System Drive"], answer: 0 },
+            { q: "Which port does SSH use?", options: ["21", "22", "23", "25"], answer: 1 }
+        ],
+        hard: [
+            { q: "What is the time complexity of binary search?", options: ["O(n)", "O(log n)", "O(n²)", "O(1)"], answer: 1 },
+            { q: "Which layer of OSI handles routing?", options: ["Transport", "Network", "Data Link", "Session"], answer: 1 },
+            { q: "What does RAID 5 provide?", options: ["Mirroring only", "Striping with parity", "Just striping", "Just parity"], answer: 1 },
+            { q: "What is a Docker container?", options: ["Virtual machine", "Lightweight isolated environment", "Database", "Web server"], answer: 1 },
+            { q: "What does CI/CD stand for?", options: ["Code Integration/Code Deployment", "Continuous Integration/Continuous Deployment", "Computer Integration/Computer Deployment", "Central Integration/Central Deployment"], answer: 1 },
+            { q: "Which is a NoSQL database?", options: ["MySQL", "PostgreSQL", "MongoDB", "Oracle"], answer: 2 },
+            { q: "What is Kubernetes used for?", options: ["Version control", "Container orchestration", "Database management", "Web development"], answer: 1 },
+            { q: "What does LDAP stand for?", options: ["Lightweight Directory Access Protocol", "Local Directory Access Protocol", "Linked Data Access Protocol", "Large Directory Access Protocol"], answer: 0 },
+            { q: "What is the purpose of a load balancer?", options: ["Store data", "Distribute traffic", "Encrypt data", "Monitor logs"], answer: 1 },
+            { q: "What does SAML stand for?", options: ["Security Assertion Markup Language", "Simple Authentication Markup Language", "Secure Access Management Layer", "System Authentication Module Layer"], answer: 0 }
+        ]
     };
 
-    function formatTime(secs) {
-        const m = Math.floor(secs / 60).toString().padStart(2, '0');
-        const s = (secs % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    }
-
-    function startTimer() {
-        stopTimer();
-        seconds = 0;
-        timerEl.textContent = '00:00';
-        timerInterval = setInterval(() => {
-            seconds++;
-            timerEl.textContent = formatTime(seconds);
-        }, 1000);
-    }
-
-    function stopTimer() {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+        return shuffled;
     }
 
     function updateLeaderboard() {
         if (leaderboard.length === 0) {
-            leaderboardList.innerHTML = '<div class="leaderboard-empty">No records yet. Be the first!</div>';
+            leaderboardList.innerHTML = '<div class="leaderboard-empty">No scores yet. Be the first!</div>';
             return;
         }
-        
         const ranks = ['gold', 'silver', 'bronze'];
         leaderboardList.innerHTML = leaderboard.slice(0, 3).map((entry, i) => `
             <div class="leaderboard-item">
                 <span class="leaderboard-rank ${ranks[i]}">#${i + 1}</span>
                 <span class="leaderboard-name">${entry.name}</span>
-                <span class="leaderboard-time">${formatTime(entry.time)}</span>
+                <span class="leaderboard-time">${entry.score}/10</span>
             </div>
         `).join('');
     }
 
-    function saveToLeaderboard(name, time) {
-        leaderboard.push({ name, time, date: new Date().toISOString() });
-        leaderboard.sort((a, b) => a.time - b.time);
-        leaderboard = leaderboard.slice(0, 10); // Keep top 10
-        localStorage.setItem('sudokuLeaderboard', JSON.stringify(leaderboard));
+    function saveScore(name, score) {
+        leaderboard.push({ name, score, date: new Date().toISOString() });
+        leaderboard.sort((a, b) => b.score - a.score);
+        leaderboard = leaderboard.slice(0, 10);
+        localStorage.setItem('quizLeaderboard', JSON.stringify(leaderboard));
         updateLeaderboard();
     }
 
-    function initBoard() {
-        const puzzle = puzzles[currentLevel];
-        currentPuzzle = [...puzzle.puzzle];
-        board = [...puzzle.puzzle];
-        solution = [...puzzle.solution];
-        errors = 0;
-        errorsEl.textContent = errors;
-        selectedCell = null;
-        startTimer();
-        renderBoard();
-    }
-
-    function renderBoard() {
-        grid.innerHTML = '';
-        board.forEach((num, i) => {
-            const cell = document.createElement('div');
-            cell.className = 'sudoku-cell';
-            cell.dataset.index = i;
-            
-            if (currentPuzzle[i] !== 0) {
-                cell.classList.add('given');
-                cell.textContent = num;
-            } else if (num !== 0) {
-                cell.textContent = num;
-                if (num !== solution[i]) cell.classList.add('error');
-            }
-            
-            cell.addEventListener('click', () => selectCell(i));
-            grid.appendChild(cell);
-        });
-    }
-
-    function selectCell(index) {
-        if (currentPuzzle[index] !== 0) return;
-        document.querySelectorAll('.sudoku-cell').forEach(c => c.classList.remove('selected'));
-        grid.children[index].classList.add('selected');
-        selectedCell = index;
-    }
-
-    function enterNumber(num) {
-        if (selectedCell === null || currentPuzzle[selectedCell] !== 0) return;
-        
-        if (num === 0) {
-            board[selectedCell] = 0;
-        } else {
-            board[selectedCell] = num;
-            
-            if (num !== solution[selectedCell]) {
-                errors++;
-                errorsEl.textContent = errors;
-                
-                if (errors >= maxErrors) {
-                    stopTimer();
-                    setTimeout(() => {
-                        alert('Game Over! You made ' + maxErrors + ' mistakes. Try again!');
-                        initBoard();
-                    }, 300);
-                    return;
-                }
-            }
-            
-            // Check win
-            if (board.every((val, i) => val === solution[i])) {
-                stopTimer();
-                const finalTime = seconds;
-                setTimeout(() => {
-                    alert(`🎉 Congratulations ${playerName}! You solved the ${currentLevel} puzzle in ${formatTime(finalTime)}!`);
-                    saveToLeaderboard(playerName, finalTime);
-                    // Show name entry again
-                    gameArea.style.display = 'none';
-                    nameEntry.style.display = 'block';
-                }, 300);
-            }
-        }
-        
-        renderBoard();
-        if (selectedCell !== null) grid.children[selectedCell].classList.add('selected');
-    }
-
-    // Start game button
-    startGameBtn.addEventListener('click', () => {
+    function startQuiz() {
         playerName = playerNameInput.value.trim() || 'Guest';
-        currentPlayerEl.textContent = playerName;
-        nameEntry.style.display = 'none';
-        gameArea.style.display = 'block';
-        initBoard();
+        questions = shuffleArray(allQuestions[difficulty]).slice(0, 10);
+        currentQuestion = 0;
+        score = 0;
+        startScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        resultsScreen.style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentQuestion >= questions.length) {
+            endQuiz();
+            return;
+        }
+        const q = questions[currentQuestion];
+        currentEl.textContent = currentQuestion + 1;
+        scoreEl.textContent = score;
+        questionEl.textContent = q.q;
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'quiz-feedback';
+        
+        optionsEl.innerHTML = q.options.map((opt, i) => `
+            <button class="quiz-option" data-index="${i}">${opt}</button>
+        `).join('');
+
+        // Start timer
+        timer = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 15;
+        timerEl.textContent = timer;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timer--;
+            timerEl.textContent = timer;
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                handleAnswer(-1); // Time's up
+            }
+        }, 1000);
+    }
+
+    function handleAnswer(selectedIndex) {
+        clearInterval(timerInterval);
+        const q = questions[currentQuestion];
+        const options = optionsEl.querySelectorAll('.quiz-option');
+        
+        options.forEach(opt => {
+            opt.classList.add('disabled');
+            const idx = parseInt(opt.dataset.index);
+            if (idx === q.answer) {
+                opt.classList.add('correct');
+            } else if (idx === selectedIndex) {
+                opt.classList.add('wrong');
+            }
+        });
+
+        if (selectedIndex === q.answer) {
+            score++;
+            scoreEl.textContent = score;
+            feedbackEl.textContent = '✓ Correct!';
+            feedbackEl.style.color = '#22c55e';
+        } else if (selectedIndex === -1) {
+            feedbackEl.textContent = "⏱️ Time's up!";
+            feedbackEl.style.color = '#f59e0b';
+        } else {
+            feedbackEl.textContent = '✗ Wrong!';
+            feedbackEl.style.color = '#ef4444';
+        }
+
+        setTimeout(() => {
+            currentQuestion++;
+            showQuestion();
+        }, 1500);
+    }
+
+    function endQuiz() {
+        gameScreen.style.display = 'none';
+        resultsScreen.style.display = 'block';
+        finalScoreEl.textContent = `${score}/10`;
+        
+        let message = '';
+        if (score === 10) message = '🏆 Perfect! You\'re a tech genius!';
+        else if (score >= 8) message = '🌟 Excellent! Great tech knowledge!';
+        else if (score >= 6) message = '👍 Good job! Keep learning!';
+        else if (score >= 4) message = '📚 Not bad! Room for improvement.';
+        else message = '💪 Keep studying! You\'ll get better!';
+        
+        resultsMessageEl.textContent = message;
+        saveScore(playerName, score);
+    }
+
+    function resetQuiz() {
+        resultsScreen.style.display = 'none';
+        startScreen.style.display = 'block';
+        updateLeaderboard();
+    }
+
+    // Event Listeners
+    optionsEl.addEventListener('click', (e) => {
+        if (e.target.classList.contains('quiz-option') && !e.target.classList.contains('disabled')) {
+            handleAnswer(parseInt(e.target.dataset.index));
+        }
     });
+
+    difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            difficultyBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            difficulty = btn.dataset.difficulty;
+        });
+    });
+
+    startBtn.addEventListener('click', startQuiz);
+    playAgainBtn.addEventListener('click', resetQuiz);
 
     playerNameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') startGameBtn.click();
+        if (e.key === 'Enter') startQuiz();
     });
 
-    // Level selection
-    levelBtns.forEach(levelBtn => {
-        levelBtn.addEventListener('click', () => {
-            levelBtns.forEach(b => b.classList.remove('active'));
-            levelBtn.classList.add('active');
-            currentLevel = levelBtn.dataset.level;
-            initBoard();
-        });
-    });
-
-    function openSudokuModal() {
+    function openQuizModal() {
         modal.classList.add('active');
         updateLeaderboard();
-        // Close mobile nav if open
         if (navLinks) navLinks.classList.remove('active');
     }
 
-    btn.addEventListener('click', openSudokuModal);
-    if (btnMobile) btnMobile.addEventListener('click', openSudokuModal);
+    btn.addEventListener('click', openQuizModal);
+    if (btnMobile) btnMobile.addEventListener('click', openQuizModal);
 
     closeBtn.addEventListener('click', () => {
         modal.classList.remove('active');
-        stopTimer();
+        clearInterval(timerInterval);
     });
-    
+
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.remove('active');
-            stopTimer();
+            clearInterval(timerInterval);
         }
     });
+}
 
-    numberPad.addEventListener('click', (e) => {
-        if (e.target.dataset.num !== undefined) enterNumber(parseInt(e.target.dataset.num));
-    });
+// Theme Toggle (Light/Dark Mode)
+function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    const icon = document.getElementById('theme-icon');
+    
+    // Check saved preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        icon.textContent = '☀️';
+    }
 
-    newGameBtn.addEventListener('click', initBoard);
-
-    document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active') || gameArea.style.display === 'none') return;
-        if (e.key >= '1' && e.key <= '9') enterNumber(parseInt(e.key));
-        else if (e.key === 'Backspace' || e.key === 'Delete') enterNumber(0);
+    toggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        icon.textContent = isLight ? '☀️' : '🌙';
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
     });
 }
 
@@ -1001,7 +1069,7 @@ function initContactForm() {
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const message = document.getElementById('message').value;
-        
+
         const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
         const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
         
@@ -1073,7 +1141,7 @@ This meeting request was sent from Milan Wosti's Portfolio website.`
         // Show success message
         alert('Meeting request prepared! Your email client will open with the meeting details. Please send the email to complete your request.');
         
-        form.reset();
+            form.reset();
         modal.classList.remove('active');
     });
 }
@@ -1098,22 +1166,6 @@ function initChatbox() {
     const sendBtn = document.getElementById('chat-send');
     const messages = document.getElementById('chatbox-messages');
 
-    // Conversation history for context
-    let conversationHistory = [];
-
-    // Milan's context for the AI
-    const systemPrompt = `You are "Ask Milan", a helpful AI assistant on Milan Wosti's portfolio website. Answer ANY question the user asks - you are a general-purpose AI like ChatGPT.
-
-About Milan Wosti (website owner) - use this info ONLY if asked about Milan:
-- IT Support Engineer at Palo Alto Networks (1.5 years experience)
-- Location: Santa Clara County, California
-- From: Kathmandu, Nepal (home to Himalayas, Mount Everest, birthplace of Buddha)
-- Education: B.IT from KIST College
-- Skills: Active Directory, Okta, Jamf, AWS, Azure, Python, PowerShell, SQL
-- LinkedIn: linkedin.com/in/milanwosticonnect
-
-For ALL other questions, answer accurately and helpfully. Keep responses concise (2-4 sentences). Be friendly and conversational.`;
-
     function addMessage(text, isUser = false, isTyping = false) {
         const msg = document.createElement('div');
         msg.className = `chat-message ${isUser ? 'user' : 'bot'}`;
@@ -1133,187 +1185,148 @@ For ALL other questions, answer accurately and helpfully. Keep responses concise
         if (typing) typing.remove();
     }
 
-    async function getAIResponse(userMessage) {
-        conversationHistory.push({ role: 'user', content: userMessage });
+    function getResponse(userMessage) {
+        const q = userMessage.toLowerCase().trim();
         
-        if (conversationHistory.length > 20) {
-            conversationHistory = conversationHistory.slice(-20);
+        // Greetings - friendly and warm
+        if (q.match(/^(hi|hello|hey|howdy|yo|sup|greetings|good morning|good afternoon|good evening|what's up|whats up)\b/)) {
+            const greetings = [
+                "Hey there! 👋 I'm Milan's virtual assistant. Ask me anything about him, tech stuff, or just chat!",
+                "Hello! Nice to meet you! I'm here to help - whether you want to know about Milan or just have a conversation.",
+                "Hey! Welcome to Milan's corner of the internet. What can I help you with today?",
+                "Hi! 😊 Feel free to ask me about Milan, his work, or anything else on your mind!"
+            ];
+            return greetings[Math.floor(Math.random() * greetings.length)];
         }
 
-        // First try Wikipedia for factual questions
-        const wikiResponse = await tryWikipedia(userMessage);
-        if (wikiResponse) {
-            conversationHistory.push({ role: 'assistant', content: wikiResponse });
-            return wikiResponse;
+        // How are you / what's up
+        if (q.match(/how are you|how's it going|how you doing|what's up|whats up|how do you do/)) {
+            const responses = [
+                "I'm doing great, thanks for asking! 😊 How can I help you today?",
+                "All good here! Just hanging out on Milan's website. What brings you here?",
+                "Pretty good! Always happy to chat. What's on your mind?",
+                "Doing well! Ready to answer your questions or just have a friendly chat."
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
         }
 
-        // Then try local knowledge base
-        const localResponse = getSmartFallback(userMessage);
-        conversationHistory.push({ role: 'assistant', content: localResponse });
-        return localResponse;
-    }
-
-    // Wikipedia API - great for factual questions
-    async function tryWikipedia(query) {
-        try {
-            // Extract search term from question
-            let searchTerm = query
-                .replace(/^(what|who|where|when|why|how|tell me about|explain|define|describe)\s+(is|are|was|were|do|does|did)?\s*/i, '')
-                .replace(/[?!.,]/g, '')
-                .trim();
-            
-            if (searchTerm.length < 2) return null;
-
-            // Try direct page lookup first
-            const response = await fetch(
-                `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`,
-                { signal: AbortSignal.timeout(5000) }
-            );
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.extract && data.extract.length > 50) {
-                    const sentences = data.extract.split('. ').slice(0, 3).join('. ');
-                    return sentences + (sentences.endsWith('.') ? '' : '.');
-                }
-            }
-
-            // Try Wikipedia search if direct lookup fails
-            const searchResponse = await fetch(
-                `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json&origin=*`,
-                { signal: AbortSignal.timeout(5000) }
-            );
-            
-            if (searchResponse.ok) {
-                const searchData = await searchResponse.json();
-                if (searchData.query?.search?.[0]?.title) {
-                    const title = searchData.query.search[0].title;
-                    const summaryResponse = await fetch(
-                        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
-                        { signal: AbortSignal.timeout(5000) }
-                    );
-                    if (summaryResponse.ok) {
-                        const summaryData = await summaryResponse.json();
-                        if (summaryData.extract && summaryData.extract.length > 50) {
-                            const sentences = summaryData.extract.split('. ').slice(0, 3).join('. ');
-                            return sentences + (sentences.endsWith('.') ? '' : '.');
-                        }
-                    }
-                }
-            }
-        } catch {}
-        return null;
-    }
-
-    // Smart fallback with comprehensive knowledge
-    function getSmartFallback(userMessage) {
-        const q = userMessage.toLowerCase();
-        
-        // Greetings first
-        if (q.match(/^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)\b/)) {
-            return "Hello! I'm Ask Milan, an AI assistant powered by Wikipedia. I can answer questions about almost anything - people, places, science, history, math, or about Milan Wosti. What would you like to know?";
+        // Who are you / what are you
+        if (q.match(/who are you|what are you|your name|about you/)) {
+            return "I'm Ask Milan - a friendly chatbot here to tell you about Milan Wosti and answer your questions. Think of me as Milan's digital sidekick! 🤖";
         }
 
         // Milan-specific questions
-        if (q.includes('milan') || q.includes('portfolio') || q.includes('website') || q.includes('owner')) {
-            if (q.includes('work') || q.includes('job')) return "Milan Wosti works as an IT Support Engineer at Palo Alto Networks in California with 1.5 years of experience.";
-            if (q.includes('from') || q.includes('born') || q.includes('nepal')) return "Milan was born in Kathmandu, Nepal - home to Mount Everest and the birthplace of Gautam Buddha.";
-            if (q.includes('skill')) return "Milan is skilled in IT Support, Active Directory, Okta, Jamf, AWS, Azure AD, Python, PowerShell, and SQL.";
-            if (q.includes('contact') || q.includes('hire') || q.includes('linkedin')) return "Connect with Milan on LinkedIn at linkedin.com/in/milanwosticonnect or use the contact form!";
-            if (q.includes('education') || q.includes('degree')) return "Milan holds a Bachelor's degree in Information Technology from KIST College.";
-            return "Milan Wosti is an IT Support Engineer at Palo Alto Networks, originally from Nepal. What would you like to know about him?";
-        }
-        
-        // Mountains
-        if (q.includes('everest') || (q.includes('tallest') && q.includes('mountain')) || (q.includes('highest') && q.includes('mountain')) || (q.includes('big') && q.includes('everest'))) {
-            return "Mount Everest is 8,848.86 meters (29,031.7 feet) tall, making it Earth's highest mountain above sea level. It's located in the Himalayas on the border between Nepal and Tibet.";
-        }
-        if (q.includes('k2')) return "K2 is 8,611 meters (28,251 feet) tall, the second-highest mountain on Earth, located on the China-Pakistan border.";
-        
-        // Famous landmarks
-        if (q.includes('eiffel')) return "The Eiffel Tower is 330 meters (1,083 feet) tall. Built in 1889 in Paris, France, it was the world's tallest structure for 41 years.";
-        if (q.includes('statue of liberty')) return "The Statue of Liberty is 93 meters (305 feet) from ground to torch. It was a gift from France to the USA in 1886.";
-        if (q.includes('burj khalifa')) return "Burj Khalifa in Dubai is 828 meters (2,717 feet) tall with 163 floors - the world's tallest building since 2010.";
-        if (q.includes('great wall')) return "The Great Wall of China is approximately 21,196 km (13,171 miles) long, built over many centuries.";
-        if (q.includes('taj mahal')) return "The Taj Mahal is a white marble mausoleum in Agra, India, built 1632-1653 by Emperor Shah Jahan for his wife.";
-        if (q.includes('pyramid') || q.includes('giza')) return "The Great Pyramid of Giza is 146.6 meters (481 feet) tall, built around 2560 BCE in Egypt.";
-        
-        // Capitals - expanded
-        const capitals = {
-            'france': 'Paris', 'germany': 'Berlin', 'japan': 'Tokyo', 'china': 'Beijing', 'india': 'New Delhi',
-            'nepal': 'Kathmandu', 'usa': 'Washington D.C.', 'america': 'Washington D.C.', 'united states': 'Washington D.C.',
-            'uk': 'London', 'england': 'London', 'italy': 'Rome', 'spain': 'Madrid', 'australia': 'Canberra',
-            'canada': 'Ottawa', 'brazil': 'Brasília', 'russia': 'Moscow', 'mexico': 'Mexico City',
-            'south korea': 'Seoul', 'north korea': 'Pyongyang', 'egypt': 'Cairo', 'turkey': 'Ankara',
-            'greece': 'Athens', 'thailand': 'Bangkok', 'vietnam': 'Hanoi', 'indonesia': 'Jakarta',
-            'pakistan': 'Islamabad', 'argentina': 'Buenos Aires', 'south africa': 'Pretoria',
-            'netherlands': 'Amsterdam', 'belgium': 'Brussels', 'switzerland': 'Bern', 'austria': 'Vienna',
-            'poland': 'Warsaw', 'sweden': 'Stockholm', 'norway': 'Oslo', 'denmark': 'Copenhagen'
-        };
-        if (q.includes('capital')) {
-            for (const [country, capital] of Object.entries(capitals)) {
-                if (q.includes(country)) return `The capital of ${country.charAt(0).toUpperCase() + country.slice(1)} is ${capital}.`;
+        if (q.includes('milan') || q.includes('portfolio') || q.includes('website') || q.includes('owner') || q.includes('your') || q.includes('his')) {
+            if (q.match(/work|job|company|employ|do for/)) {
+                return "Milan works as an IT Support Engineer at Palo Alto Networks in California. He's been there for about 1.5 years, helping keep things running smoothly! 💼";
             }
+            if (q.match(/from|born|nepal|country|where.*from|hometown/)) {
+                return "Milan's from Kathmandu, Nepal! 🇳🇵 You know, the country with Mount Everest and where Buddha was born. Pretty cool place to grow up, right?";
+            }
+            if (q.match(/skill|know|tech|good at|specialize/)) {
+                return "Milan's got a solid toolkit - Active Directory, Okta, Jamf, AWS, Azure, Python, PowerShell, SQL... basically the stuff that keeps IT departments happy! 🛠️";
+            }
+            if (q.match(/contact|hire|reach|linkedin|connect|email/)) {
+                return "Want to connect with Milan? Hit him up on LinkedIn at linkedin.com/in/milanwosticonnect or use the contact form on this site! He's always open to chat. 📬";
+            }
+            if (q.match(/education|degree|college|study|school|university/)) {
+                return "Milan has a Bachelor's in Information Technology from KIST College. That's where the tech journey began! 🎓";
+            }
+            if (q.match(/hobby|fun|free time|interest|like to do/)) {
+                return "When Milan's not fixing IT issues, he's probably exploring new tech, learning something new, or enjoying some good food. Work-life balance, you know? 😄";
+            }
+            if (q.match(/age|old|birthday/)) {
+                return "Hmm, I don't share personal details like that! But Milan's at that sweet spot where he's got enough experience to be useful but still young enough to stay curious. 😉";
+            }
+            return "Milan Wosti is an IT Support Engineer at Palo Alto Networks, originally from Nepal. He's passionate about tech and always learning. What specifically would you like to know about him?";
         }
-        
-        // Population
-        if (q.includes('population')) {
-            if (q.includes('world') || q.includes('earth')) return "The world population is approximately 8.1 billion people as of 2024.";
-            if (q.includes('china')) return "China's population is approximately 1.4 billion people.";
-            if (q.includes('india')) return "India's population is approximately 1.44 billion, now the world's most populous country.";
-            if (q.includes('usa') || q.includes('america')) return "The United States population is approximately 335 million people.";
+
+        // Tech questions
+        if (q.match(/what is|explain|tell me about/) && q.match(/python|javascript|aws|azure|cloud|programming|coding|it support|active directory|okta/)) {
+            if (q.includes('python')) return "Python is a super versatile programming language - easy to learn, powerful to use. Milan uses it for automation and scripting. It's like the Swiss Army knife of coding! 🐍";
+            if (q.includes('javascript')) return "JavaScript is the language that makes websites interactive. Pretty much every website you visit uses it. It's everywhere! 💻";
+            if (q.includes('aws')) return "AWS (Amazon Web Services) is Amazon's cloud platform - basically renting computing power instead of buying servers. Milan works with it for cloud infrastructure stuff. ☁️";
+            if (q.includes('azure')) return "Azure is Microsoft's cloud platform, similar to AWS. Milan uses Azure AD for identity management. It's big in enterprise environments! 🔷";
+            if (q.includes('active directory')) return "Active Directory is Microsoft's way of managing users and computers in a company. It's like the phone book + security guard of corporate IT. Milan deals with it daily! 📁";
+            if (q.includes('okta')) return "Okta is an identity management service - basically helps companies manage who can access what. Single sign-on, multi-factor auth, that kind of stuff. 🔐";
+            if (q.includes('it support')) return "IT Support is all about keeping technology working for people - troubleshooting issues, setting up systems, and being the hero when things break! That's Milan's world. 🦸";
         }
-        
-        // Science facts
-        if (q.includes('speed of light')) return "The speed of light is 299,792,458 m/s (186,282 mi/s) in a vacuum - nothing can travel faster.";
-        if (q.includes('speed of sound')) return "The speed of sound is approximately 343 m/s (767 mph) at sea level in dry air at 20°C.";
-        if (q.includes('sun') && (q.includes('far') || q.includes('distance') || q.includes('away'))) return "The Sun is about 150 million km (93 million miles) from Earth - light takes 8 minutes to reach us.";
-        if (q.includes('moon') && (q.includes('far') || q.includes('distance') || q.includes('away'))) return "The Moon is about 384,400 km (238,855 miles) from Earth on average.";
-        if (q.includes('planets') || q.includes('solar system')) return "Our solar system has 8 planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.";
-        if (q.includes('biggest planet') || q.includes('largest planet')) return "Jupiter is the largest planet - over 1,300 Earths could fit inside it.";
-        if (q.includes('age') && (q.includes('earth') || q.includes('planet'))) return "Earth is approximately 4.54 billion years old.";
-        if (q.includes('age') && q.includes('universe')) return "The universe is approximately 13.8 billion years old.";
-        
-        // Tech/Inventions
-        if (q.includes('invented') || q.includes('created') || q.includes('founded')) {
-            if (q.includes('google')) return "Google was founded by Larry Page and Sergey Brin in September 1998 at Stanford University.";
-            if (q.includes('facebook') || q.includes('meta')) return "Facebook (now Meta) was founded by Mark Zuckerberg in February 2004.";
-            if (q.includes('apple')) return "Apple was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne on April 1, 1976.";
-            if (q.includes('microsoft')) return "Microsoft was founded by Bill Gates and Paul Allen on April 4, 1975.";
-            if (q.includes('amazon')) return "Amazon was founded by Jeff Bezos on July 5, 1994.";
-            if (q.includes('tesla')) return "Tesla was founded in 2003 by Martin Eberhard and Marc Tarpenning. Elon Musk joined in 2004.";
-            if (q.includes('telephone')) return "The telephone was invented by Alexander Graham Bell in 1876.";
-            if (q.includes('light bulb') || q.includes('lightbulb')) return "The practical incandescent light bulb was invented by Thomas Edison in 1879.";
-            if (q.includes('internet')) return "The Internet evolved from ARPANET (1969). Tim Berners-Lee invented the World Wide Web in 1989.";
+
+        // General conversation
+        if (q.match(/weather|sunny|rain|cold|hot/)) {
+            return "I can't check the weather, but you can see the current conditions in Santa Clara up in the status bar! ☀️";
         }
-        
-        // Math calculations
+
+        if (q.match(/joke|funny|laugh|humor/)) {
+            const jokes = [
+                "Why do programmers prefer dark mode? Because light attracts bugs! 🐛😄",
+                "There are only 10 types of people in the world: those who understand binary and those who don't! 💻",
+                "Why did the IT guy go broke? Because he lost his domain! 🌐",
+                "A SQL query walks into a bar, walks up to two tables and asks... 'Can I join you?' 🍺"
+            ];
+            return jokes[Math.floor(Math.random() * jokes.length)];
+        }
+
+        if (q.match(/time|date|today|what day/)) {
+            const now = new Date();
+            return `It's ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} and the time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}. ⏰`;
+        }
+
+        // Math
         const mathMatch = userMessage.match(/[\d+\-*/().^%\s]+/);
-        if (mathMatch && (q.includes('what is') || q.includes('calculate') || q.includes('=') || q.includes('solve') || /^\d/.test(q.trim()))) {
+        if (mathMatch && (q.includes('what is') || q.includes('calculate') || q.includes('=') || /^\d/.test(q.trim()))) {
             try {
                 const expr = mathMatch[0].replace(/\^/g, '**').replace(/x/gi, '*').trim();
                 if (expr.length > 1 && /\d/.test(expr)) {
                     const result = Function('"use strict"; return (' + expr + ')')();
-                    if (!isNaN(result) && isFinite(result)) return `The answer is ${result.toLocaleString()}.`;
+                    if (!isNaN(result) && isFinite(result)) return `That equals ${result.toLocaleString()}! 🧮`;
                 }
             } catch {}
         }
-        
-        // Time/Date
-        if (q.includes('time') || q.includes('date') || q.includes('today') || q.includes('what day')) {
-            const now = new Date();
-            return `Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The time is ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.`;
+
+        // Thanks
+        if (q.match(/thank|thanks|thx|appreciate/)) {
+            const thanks = [
+                "You're welcome! Happy to help! 😊",
+                "No problem at all! Anything else you'd like to know?",
+                "Anytime! That's what I'm here for!",
+                "Glad I could help! Feel free to ask more questions!"
+            ];
+            return thanks[Math.floor(Math.random() * thanks.length)];
         }
-        
-        // Thanks/Bye
-        if (q.includes('thank')) return "You're welcome! Feel free to ask me anything else.";
-        if (q.includes('bye') || q.includes('goodbye')) return "Goodbye! Thanks for chatting. Come back anytime!";
-        
-        // Default - encourage Wikipedia-style questions
-        return "Try asking me about famous people, places, inventions, science facts, or math! For example: 'Who is Albert Einstein?' or 'What is the Eiffel Tower?' I use Wikipedia to find answers.";
+
+        // Goodbye
+        if (q.match(/bye|goodbye|see you|later|gotta go|leaving/)) {
+            const byes = [
+                "See you later! Thanks for stopping by! 👋",
+                "Bye! Come back anytime you want to chat!",
+                "Take care! Hope to see you again soon! 😊",
+                "Goodbye! Don't be a stranger!"
+            ];
+            return byes[Math.floor(Math.random() * byes.length)];
+        }
+
+        // Compliments
+        if (q.match(/cool|awesome|nice|great|amazing|love|beautiful/)) {
+            return "Thanks! Milan put a lot of work into this site. Glad you're enjoying it! 🙌";
+        }
+
+        // Help
+        if (q.match(/help|what can you|can you do|your purpose/)) {
+            return "I can tell you about Milan - his work, skills, background, and how to contact him. I can also do basic math, tell jokes, and have a friendly chat! Try asking something! 💬";
+        }
+
+        // Default responses - varied and friendly
+        const defaults = [
+            "Hmm, I'm not sure about that one! But I'm great at answering questions about Milan or having a casual chat. What else would you like to know? 🤔",
+            "That's a bit outside my wheelhouse! I'm best at talking about Milan and his work. Try asking about his skills, experience, or background!",
+            "Interesting question! I might not have the answer, but I'd love to tell you about Milan or chat about tech stuff. What sounds good?",
+            "I'm still learning! For now, I'm best at answering questions about Milan Wosti. Ask me about his job, skills, or how to contact him! 😊"
+        ];
+        return defaults[Math.floor(Math.random() * defaults.length)];
     }
 
-    async function handleSend() {
+    function handleSend() {
         const text = input.value.trim();
         if (!text) return;
         
@@ -1324,18 +1337,15 @@ For ALL other questions, answer accurately and helpfully. Keep responses concise
         
         addMessage('', false, true);
         
-        try {
-            const response = await getAIResponse(text);
+        // Simulate thinking time for more natural feel
+        setTimeout(() => {
             removeTypingIndicator();
+            const response = getResponse(text);
             addMessage(response);
-        } catch (error) {
-            removeTypingIndicator();
-            addMessage("Sorry, I encountered an error. Please try again!");
-        }
-        
-        input.disabled = false;
-        sendBtn.disabled = false;
-        input.focus();
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }, 500 + Math.random() * 500);
     }
 
     toggle.addEventListener('click', () => {

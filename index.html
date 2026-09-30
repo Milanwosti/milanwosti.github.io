@@ -58,7 +58,7 @@
                 <a href="#contact" class="nav-link">Contact</a>
                 <!-- Mobile-only buttons inside nav -->
                 <div class="mobile-actions">
-                    <button class="game-btn" id="sudoku-btn-mobile">Sudoku</button>
+                    <button class="game-btn" id="quiz-btn-mobile">Quiz</button>
                     <button class="music-btn" id="music-btn-mobile">♪ Music</button>
                 </div>
             </nav>
@@ -67,10 +67,17 @@
                     <input type="text" id="site-search-input" placeholder="Search..." autocomplete="off">
                     <div class="search-dropdown" id="search-dropdown"></div>
                 </div>
-                <button class="game-btn" id="sudoku-btn">Sudoku</button>
+                <button class="game-btn" id="quiz-btn">Quiz</button>
                 <button class="music-btn" id="music-btn">♪ Music</button>
                 <button class="music-control" id="music-control" style="display: none;">
                     <span id="music-control-icon">⏸️</span>
+                </button>
+                <div class="header-flags">
+                    <span class="flag flag-us" title="United States">🇺🇸</span>
+                    <span class="flag flag-nepal" title="Nepal">🇳🇵</span>
+                </div>
+                <button class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">
+                    <span id="theme-icon">🌙</span>
                 </button>
             </div>
             <button class="menu-toggle" id="menu-toggle">
@@ -79,12 +86,6 @@
             </button>
         </div>
     </header>
-
-    <!-- Flags -->
-    <div class="flags-container" id="flags-container">
-        <div class="flag flag-us" title="United States">🇺🇸</div>
-        <div class="flag flag-nepal" title="Nepal">🇳🇵</div>
-    </div>
 
     <!-- Status Widget (Top Right) -->
     <div class="status-widget" id="status-widget">
@@ -116,10 +117,10 @@
                 <div class="about-content">
                     <h3>Background</h3>
                     <p>
-                        I was born in <strong>Kathmandu, Nepal</strong>—a country renowned for hosting the highest mountain range in the world, the majestic <strong>Himalayas</strong>, including Mount Everest, the Earth's highest peak. Nepal is also historically significant as the <strong>birthplace of Gautam Buddha</strong>, the founder of Buddhism, making it a land of profound spiritual and cultural heritage.
+                        I grew up in <strong>Kathmandu, Nepal</strong>—where the mighty <strong>Himalayas</strong> tower over the horizon and Mount Everest reminds you daily that impossible is just a word. It's also where <strong>Gautam Buddha</strong> was born, so yeah, I come from a place that literally gave the world both the highest peak and inner peace.
                     </p>
                     <p>
-                        Growing up in such a rich environment instilled in me values of perseverance, humility, and a deep appreciation for both natural beauty and human achievement. These principles continue to guide my professional journey in the technology sector.
+                        Between navigating chaotic streets, power outages, and monsoon seasons, I learned to adapt, problem-solve, and stay curious. Those early lessons stuck with me—now I just apply them to code instead of finding creative ways to charge my phone during load-shedding.
                     </p>
                     
                     <h3>Professional Profile</h3>
@@ -453,57 +454,56 @@
     </div>
 
     <!-- Sudoku Modal -->
-    <div class="modal" id="sudoku-modal">
-        <div class="modal-content sudoku-modal">
+    <!-- Tech Quiz Modal -->
+    <div class="modal" id="quiz-modal">
+        <div class="modal-content quiz-modal">
             <div class="modal-header">
-                <h3>Sudoku</h3>
-                <button class="modal-close" id="sudoku-close">×</button>
+                <h3>🧠 Tech Quiz</h3>
+                <button class="modal-close" id="quiz-close">×</button>
             </div>
             
             <!-- Player Name Entry -->
-            <div class="sudoku-name-entry" id="sudoku-name-entry">
-                <h4>Enter Your Name to Play</h4>
-                <input type="text" id="player-name" placeholder="Your name..." maxlength="20">
-                <button class="btn btn-primary" id="start-game-btn">Start Game</button>
+            <div class="quiz-start" id="quiz-start">
+                <h4>Test Your Tech Knowledge!</h4>
+                <input type="text" id="quiz-player-name" placeholder="Your name..." maxlength="20">
+                <div class="quiz-difficulty">
+                    <button class="level-btn active" data-difficulty="easy">🌱 Easy</button>
+                    <button class="level-btn" data-difficulty="medium">⚡ Medium</button>
+                    <button class="level-btn" data-difficulty="hard">🔥 Hard</button>
+                </div>
+                <button class="btn btn-primary" id="start-quiz-btn">Start Quiz</button>
                 
-                <div class="leaderboard" id="leaderboard">
-                    <h4>🏆 Top 3 Fastest Times</h4>
-                    <div class="leaderboard-list" id="leaderboard-list">
-                        <div class="leaderboard-empty">No records yet. Be the first!</div>
+                <div class="leaderboard" id="quiz-leaderboard">
+                    <h4>🏆 Top Scores</h4>
+                    <div class="leaderboard-list" id="quiz-leaderboard-list">
+                        <div class="leaderboard-empty">No scores yet. Be the first!</div>
                     </div>
                 </div>
             </div>
             
-            <!-- Game Area (hidden until name entered) -->
-            <div class="sudoku-game" id="sudoku-game" style="display: none;">
-                <div class="sudoku-levels" id="sudoku-levels">
-                    <button class="level-btn active" data-level="beginner">🌱 Beginner</button>
-                    <button class="level-btn" data-level="normal">⚡ Normal</button>
-                    <button class="level-btn" data-level="pro">🔥 Pro</button>
-                </div>
-                <div class="sudoku-info">
-                    <span>⏱️ <strong id="sudoku-timer">00:00</strong></span>
+            <!-- Quiz Game Area -->
+            <div class="quiz-game" id="quiz-game" style="display: none;">
+                <div class="quiz-info">
+                    <span>Question: <strong id="quiz-current">1</strong>/10</span>
                     <span class="info-divider">|</span>
-                    <span>Errors: <strong id="sudoku-errors">0</strong> / 10</span>
+                    <span>Score: <strong id="quiz-score">0</strong></span>
                     <span class="info-divider">|</span>
-                    <span>Player: <strong id="current-player">Guest</strong></span>
+                    <span>⏱️ <strong id="quiz-timer">30</strong>s</span>
                 </div>
-                <div class="sudoku-grid" id="sudoku-grid"></div>
-                <div class="sudoku-controls">
-                    <div class="number-pad" id="number-pad">
-                        <button data-num="1">1</button>
-                        <button data-num="2">2</button>
-                        <button data-num="3">3</button>
-                        <button data-num="4">4</button>
-                        <button data-num="5">5</button>
-                        <button data-num="6">6</button>
-                        <button data-num="7">7</button>
-                        <button data-num="8">8</button>
-                        <button data-num="9">9</button>
-                        <button data-num="0" class="erase">⌫</button>
-                    </div>
-                    <button class="btn btn-primary" id="new-game">New Game</button>
+                <div class="quiz-question" id="quiz-question">Loading question...</div>
+                <div class="quiz-options" id="quiz-options"></div>
+                <div class="quiz-feedback" id="quiz-feedback"></div>
+            </div>
+            
+            <!-- Quiz Results -->
+            <div class="quiz-results" id="quiz-results" style="display: none;">
+                <h3>🎉 Quiz Complete!</h3>
+                <div class="results-score">
+                    <span class="score-label">Your Score</span>
+                    <span class="score-value" id="final-score">0/10</span>
                 </div>
+                <div class="results-message" id="results-message"></div>
+                <button class="btn btn-primary" id="play-again-btn">Play Again</button>
             </div>
         </div>
     </div>
