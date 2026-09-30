@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initStatusBar();
     initQuoteOfDay();
     initITFacts();
+    initVisitorIP();
+    initDeviceDetection();
     initNavigation();
     initSiteSearch();
     initFloatingTools();
@@ -40,7 +42,20 @@ function initStatusBar() {
 
     async function updateWeather() {
         try {
-            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.35&longitude=-121.95&current=temperature_2m,weather_code&temperature_unit=fahrenheit');
+            // Try to get user's location for accurate weather
+            let lat = 37.35, lon = -121.95, city = 'Santa Clara'; // Default
+            
+            try {
+                const ipResponse = await fetch('https://ipapi.co/json/');
+                const ipData = await ipResponse.json();
+                if (ipData.latitude && ipData.longitude) {
+                    lat = ipData.latitude;
+                    lon = ipData.longitude;
+                    city = ipData.city || 'Your Area';
+                }
+            } catch {}
+            
+            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`);
             const data = await response.json();
             if (data.current) {
                 const temp = Math.round(data.current.temperature_2m);
@@ -52,10 +67,10 @@ function initStatusBar() {
                 else if (code <= 69) emoji = '🌧️';
                 else if (code <= 79) emoji = '❄️';
                 else if (code <= 99) emoji = '⛈️';
-                weather.textContent = `${emoji} ${temp}°F Santa Clara`;
+                weather.textContent = `${emoji} ${temp}°F ${city}`;
             }
         } catch {
-            weather.textContent = '📍 Santa Clara, CA';
+            weather.textContent = '📍 Weather unavailable';
         }
     }
 
@@ -190,6 +205,81 @@ function initITFacts() {
     
     showFact();
     setInterval(showFact, 5000);
+}
+
+// Visitor IP Address
+function initVisitorIP() {
+    const ipText = document.getElementById('ip-text');
+    const locationText = document.getElementById('location-text');
+    
+    async function fetchIPAndLocation() {
+        try {
+            // First get the real public IP
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            
+            if (ipData.ip) {
+                ipText.textContent = ipData.ip;
+                
+                // Then get location based on IP
+                try {
+                    const locResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+                    const locData = await locResponse.json();
+                    
+                    if (locData.city && locData.region) {
+                        locationText.textContent = `${locData.city}, ${locData.region}`;
+                    } else if (locData.city) {
+                        locationText.textContent = locData.city;
+                    } else if (locData.country_name) {
+                        locationText.textContent = locData.country_name;
+                    } else {
+                        locationText.textContent = 'Location unavailable';
+                    }
+                } catch {
+                    locationText.textContent = 'Location unavailable';
+                }
+            }
+        } catch {
+            // Fallback
+            try {
+                const response = await fetch('https://api64.ipify.org?format=json');
+                const data = await response.json();
+                ipText.textContent = data.ip;
+                locationText.textContent = 'Location unavailable';
+            } catch {
+                ipText.textContent = 'Unable to detect';
+                locationText.textContent = 'Unable to detect';
+            }
+        }
+    }
+    
+    fetchIPAndLocation();
+}
+
+// Device Detection
+function initDeviceDetection() {
+    const deviceText = document.getElementById('device-text');
+    const ua = navigator.userAgent;
+    
+    // Detect OS/Device
+    let device = 'Unknown Device';
+    if (/iPhone/.test(ua)) device = 'iPhone';
+    else if (/iPad/.test(ua)) device = 'iPad';
+    else if (/Android/.test(ua) && /Mobile/.test(ua)) device = 'Android Phone';
+    else if (/Android/.test(ua)) device = 'Android Tablet';
+    else if (/Macintosh|Mac OS X/.test(ua)) device = 'Mac';
+    else if (/Windows/.test(ua)) device = 'Windows PC';
+    else if (/Linux/.test(ua)) device = 'Linux';
+    
+    // Detect Browser
+    let browser = '';
+    if (/Edg\//.test(ua)) browser = 'Edge';
+    else if (/Chrome/.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
+    else if (/Safari/.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+    else if (/Firefox/.test(ua)) browser = 'Firefox';
+    else if (/Opera|OPR/.test(ua)) browser = 'Opera';
+    
+    deviceText.textContent = browser ? `${device} (${browser})` : device;
 }
 
 // Navigation
@@ -470,11 +560,49 @@ async function fetchCrypto() {
 
 async function fetchStocks() {
     const container = document.getElementById('stock-data');
-    const stocks = [
-        { name: 'AAPL', price: 178.52 + (Math.random() - 0.5) * 5, change: (Math.random() - 0.5) * 3 },
-        { name: 'GOOGL', price: 141.80 + (Math.random() - 0.5) * 5, change: (Math.random() - 0.5) * 3 },
-        { name: 'MSFT', price: 378.91 + (Math.random() - 0.5) * 5, change: (Math.random() - 0.5) * 3 }
+    
+    try {
+        // Using Yahoo Finance via a CORS proxy or direct API
+        const symbols = ['AAPL', 'GOOGL', 'MSFT'];
+        const stockData = [];
+        
+        // Try Finnhub free API
+        for (const symbol of symbols) {
+            try {
+                const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=demo`);
+                const data = await response.json();
+                if (data.c && data.c > 0) {
+                    const change = ((data.c - data.pc) / data.pc) * 100;
+                    stockData.push({ name: symbol, price: data.c, change: change });
+                }
+            } catch {}
+        }
+        
+        if (stockData.length > 0) {
+            container.innerHTML = stockData.map(s => `
+                <div class="data-item">
+                    <span class="name">${s.name}</span>
+                    <span class="value ${s.change >= 0 ? 'up' : 'down'}">
+                        $${s.price.toFixed(2)} ${s.change >= 0 ? '↑' : '↓'}${Math.abs(s.change).toFixed(2)}%
+                    </span>
+                </div>
+            `).join('');
+            return;
+        }
+    } catch {}
+    
+    // Fallback with realistic simulated data
+    const baseStocks = [
+        { name: 'AAPL', base: 185.50 },
+        { name: 'GOOGL', base: 175.20 },
+        { name: 'MSFT', base: 420.80 }
     ];
+    
+    const stocks = baseStocks.map(s => ({
+        name: s.name,
+        price: s.base + (Math.random() - 0.5) * 3,
+        change: (Math.random() - 0.5) * 2.5
+    }));
     
     container.innerHTML = stocks.map(s => `
         <div class="data-item">
@@ -591,7 +719,7 @@ function initMusicPlayer() {
 
     // Song database with YouTube IDs
     const songs = {
-        'hall of fame': 'mk48xRzuNvA', 'see you again': 'RgKAFK5djSk', 'die with a smile': 'kPa7bsKwL-c',
+        'trance music': 'uNNk-V08J7k', 'see you again': 'RgKAFK5djSk', 'die with a smile': 'kPa7bsKwL-c',
         'shape of you': 'JGwWNGJdvx8', 'perfect': 'HjmBLCbTgDo', 'thinking out loud': 'lp-EO5I60KA',
         'blinding lights': '4NRXx6U8ABQ', 'starboy': 'dqRZDebPIGs', 'save your tears': 'XXYlFuWEuKI',
         'uptown funk': 'OPf0YbXqDm0', 'just the way you are': 'LjhCEhWiKXk', '24k magic': 'UqyT8IEBkvY',

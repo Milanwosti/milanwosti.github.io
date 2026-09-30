@@ -214,6 +214,37 @@ body.light-mode .theme-toggle {
     animation: fadeIn 0.5s ease;
 }
 
+.ip-text {
+    font-size: 0.85rem;
+    color: var(--white);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--gray-900);
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.location-text {
+    font-size: 0.8rem;
+    color: var(--gray-200);
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--gray-900);
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+.device-text {
+    font-size: 0.8rem;
+    color: var(--gray-200);
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--gray-900);
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
